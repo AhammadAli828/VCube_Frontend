@@ -11,7 +11,6 @@ import { BatchAttendanceContext } from '../api/batch-attendance';
 import { UserGoogleContext } from '../api/Google';
 import { UserDetails } from '../UserDetails';
 import { UseUserAuthentication } from '../api/LoginCheck';
-import axios from 'axios';
 
 const StudentProgressOverview = lazy(() => import('./StudentProgressOverview'));
 const Search = lazy(() => import('./search'));
@@ -157,23 +156,13 @@ const Dashboard = () => {
     if (userCourse !== 'All')setSelectedCourse(userCourse);
   }, [shortLoading, isLoading]);
 
-  const deleteAllStudents = async () => {
-    // try {
-    //   const res = await axios.delete('https://vcube-backend-api.onrender.com/vcube/delete/all/students/');
-    //   handleShowSnackbar('success','Deleted all Students')
-    // } catch (err) {
-    //   handleShowSnackbar('error',`Error deleting students: ${err}`);
-    // }
-  };
-  
-
 
   if(isUserAuthenticated && is_User_Authenticated){
     return (
     <Box className="w-screen h-screen bg-slate-100">
       <Box className="w-screen h-16 flex items-center justify-between pl-5 pr-5 bg-[#1976d2]" sx={{ boxShadow: '0 0 15px rgba(0,0,0,0.5)' }}>
         <Typography className='flex items-center' variant='h6' sx={{ color: 'white' }}>
-          <HomeRounded sx={{ fontSize: '25px', marginRight: '10px', color: 'white' }} onDoubleClick={deleteAllStudents} /> 
+          <HomeRounded sx={{ fontSize: '25px', marginRight: '10px', color: 'white' }} /> 
           Dashboard
         </Typography>
         <IconButton onClick={() => setOpenDrawer(true)}>
