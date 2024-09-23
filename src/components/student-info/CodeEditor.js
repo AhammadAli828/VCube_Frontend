@@ -165,7 +165,7 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
                 setResults.current = {'status' : 'Failed', 'message' : res.response ? res.response.data.error : res.message};
             }else if(res){
                 setResults.current = res.data;
-                if(res.data.all_tests_passed === true)SubmitAssignment();
+                if(res.data.all_tests_passed === true && isUser === 'Student')SubmitAssignment();
             }
         }
         setResultPopUp(true);
@@ -173,6 +173,7 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
     };
 
     const SubmitAssignment = async () => {
+        if(isUser !== 'Student')return;
         if(attData.current && attData.current.some(data=>data.Attendance_Type.split('~')[1] === `${questionId}`))return;
         const data = {
             StudentId : stdId,
