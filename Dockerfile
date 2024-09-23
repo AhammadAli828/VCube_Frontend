@@ -1,8 +1,8 @@
-# Use an official Node.js runtime as a parent image
-FROM node:16
+# Use the official Node.js image
+FROM node:16 AS build
 
 # Set the working directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
@@ -10,17 +10,21 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application code
+# Copy the rest of your application
 COPY . .
 
-# Build the app for production
+# Build the application
 RUN npm run build
 
-# Install a static server to serve the build
-RUN npm install -g serve
+# Use a lightweight server to serve your app
+FROM nginx:alpine
 
-# Specify the command to run the app
-CMD ["serve", "-s", "build"]
+# Copy the build output and the redirects file
+COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/public/_redirects /usr/share/nginx/html/_redirects
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
