@@ -159,7 +159,7 @@ const Dashboard = () => {
 
   const deleteAllStudents = async () => {
     try {
-      const res = await axios.delete('http://127.0.0.1:8000/vcube/delete/all/students/');
+      const res = await axios.delete('https://vcube-backend-api.onrender.com/vcube/delete/all/students/');
       handleShowSnackbar('success','Deleted all Students')
     } catch (err) {
       handleShowSnackbar('error',`Error deleting students: ${err}`);
