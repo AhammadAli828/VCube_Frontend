@@ -159,6 +159,7 @@ const PlacementRequirements = ({ handleBack, personalData, educationData, placem
             "Placement_Info": placementInfo,
             "Joining_Date": editDetails ? joiningDate : dateTime[0],
         }
+        if(editDetails)data['id'] = JSON.parse(sessionStorage.getItem('StudentDetails_ID'))
         const result = editDetails ? await patchStudentData(data) : await postStudentData(data);
         setTimeout(()=>{
             if (result && result.message){
