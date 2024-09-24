@@ -178,8 +178,8 @@ const PlacementRequirements = ({ handleBack, personalData, educationData, placem
             location &&
             immediateJoin &&
             shifts &&
-            !isbond &&
-            !isInterships &&
+            (!isbond || bondDuration) &&
+            (!isInterships || internshipType) &&
             experience &&
             employement
         )return true;
