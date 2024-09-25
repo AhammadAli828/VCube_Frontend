@@ -1,15 +1,4 @@
 {
-<<<<<<< HEAD
-    "version": 3,
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "/index.html"
-      }
-    ]
-  }
-  
-=======
   "version": 3,
   "routes": [
     {
@@ -18,4 +7,4 @@
     }
   ]
 }
->>>>>>> 731b1919f1d98efb406fe811fa0145f54f457190
+

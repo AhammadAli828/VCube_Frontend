@@ -11,11 +11,8 @@ import { BatchAttendanceContext } from '../api/batch-attendance';
 import { UserGoogleContext } from '../api/Google';
 import { UserDetails } from '../UserDetails';
 import { UseUserAuthentication } from '../api/LoginCheck';
-<<<<<<< HEAD
 import UpdateDeleteAssignment from './UpdateDeleteAssignment';
 import ReportDialog from '../ReportDialog';
-=======
->>>>>>> 731b1919f1d98efb406fe811fa0145f54f457190
 
 const StudentProgressOverview = lazy(() => import('./StudentProgressOverview'));
 const Search = lazy(() => import('./search'));
@@ -170,11 +167,8 @@ const Dashboard = () => {
     <Box className="w-screen h-screen bg-slate-100">
       <Box className="w-screen h-16 flex items-center justify-between pl-5 pr-5 bg-[#1976d2]" sx={{ boxShadow: '0 0 15px rgba(0,0,0,0.5)' }}>
         <Typography className='flex items-center' variant='h6' sx={{ color: 'white' }}>
-<<<<<<< HEAD
           <HomeRounded sx={{ fontSize: '25px', marginRight: '10px', color: 'white' }}/> 
-=======
           <HomeRounded sx={{ fontSize: '25px', marginRight: '10px', color: 'white' }} /> 
->>>>>>> 731b1919f1d98efb406fe811fa0145f54f457190
           Dashboard
         </Typography>
         <IconButton onClick={() => setOpenDrawer(true)}>
