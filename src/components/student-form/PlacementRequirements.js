@@ -104,7 +104,7 @@ const PlacementRequirements = ({ handleBack, personalData, educationData, placem
 
     const handleSelect = (value, title) => {
         if(title.includes('work on Bond')){
-             setIsBond(value == 'Yes' ? true : false);
+             setIsBond(value === 'Yes' ? true : false);
              if(value === 'No')setBondDuration(null);
              if(value === 'Yes'){
                 setDialogType('Bond')
@@ -159,15 +159,14 @@ const PlacementRequirements = ({ handleBack, personalData, educationData, placem
             "Placement_Info": placementInfo,
             "Joining_Date": editDetails ? joiningDate : dateTime[0],
         }
+        if(editDetails)data['id'] = JSON.parse(sessionStorage.getItem('StudentDetails_ID'))
         const result = editDetails ? await patchStudentData(data) : await postStudentData(data);
-        setTimeout(()=>{
-            if (result && result.message){
-                handleShowSnackbar('error',result.message);
-            }else if (result === true){
-                handleShowSnackbar('success',`Student - ${personalData.Name} details ${editDetails ? 'updated' : 'added'} successfully.`);
-                setIsOpen(false);
-            }
-        },2000)
+        if (result && result.message){
+            handleShowSnackbar('error',result.message);
+        }else if (result === true){
+            handleShowSnackbar('success',`Student - ${personalData.Name} details ${editDetails ? 'updated' : 'added'} successfully.`);
+            setIsOpen(false);
+        }
     };
 
     const checkFields = () => {
@@ -177,8 +176,8 @@ const PlacementRequirements = ({ handleBack, personalData, educationData, placem
             location &&
             immediateJoin &&
             shifts &&
-            !isbond &&
-            !isInterships &&
+            (!isbond || bondDuration) &&
+            (!isInterships || internshipType) &&
             experience &&
             employement
         )return true;

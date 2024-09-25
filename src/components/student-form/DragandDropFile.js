@@ -1,9 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Box, Typography, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, IconButton, TextField } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, IconButton } from '@mui/material';
 import { CloudUploadOutlined, ArrowForward, TouchAppRounded, CheckCircleRounded, LoginRounded, DeleteForever, CloseRounded } from '@mui/icons-material';
 import { StudentsContext } from '../api/students';
-import { UserDetails } from '../UserDetails';
 import { BatchContext } from '../api/batch';
 
 const DragDropUpload = ({ onDrop, fileData, fileName, fileError, setUploadManually, handleShowSnackbar, setIsLoading, loading, selectedCourse, selectedBatch, isUser, handleClose }) => {
@@ -19,8 +18,10 @@ const DragDropUpload = ({ onDrop, fileData, fileName, fileError, setUploadManual
   },[fileError])
 
   useEffect(()=>{
-    if(onDrop && isFileError)setIsFileError(false);
-  },[fileName,onDrop])
+    if(onDrop && isFileError){
+      setIsFileError(false);
+    }
+  },[fileName,onDrop, isFileError])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

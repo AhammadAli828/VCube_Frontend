@@ -1,6 +1,6 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { Dialog, Paper, IconButton, DialogActions, DialogContent, DialogContentText, DialogTitle, Box, Button, Typography, TextField } from '@mui/material';
-import { Close, ArrowForward, CloudUploadOutlined, CloseRounded } from '@mui/icons-material';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Dialog, Paper, IconButton, DialogTitle, Box } from '@mui/material';
+import { Close, CloseRounded } from '@mui/icons-material';
 import DragAndDropList from './DragandDropFile';
 import SimpleStepper from './Stepper';
 import { closeSnackbar, useSnackbar } from 'notistack';

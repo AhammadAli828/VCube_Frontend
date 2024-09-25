@@ -1,10 +1,10 @@
-import React, { useContext, useState } from 'react';
-import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
-import { CloseRounded, Output } from '@mui/icons-material';
+import React, { useContext, useEffect, useState } from 'react';
+import { Autocomplete, Box, Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { CloseRounded } from '@mui/icons-material';
 import { AssessmentContext } from '../api/Assessment';
 
-const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, handleShowSnackbar, setIsLoading }) => {
-    const { postAssessmentQuestions } = useContext(AssessmentContext);
+const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, handleShowSnackbar, setIsLoading,     editAssignment, editAssignmentData, setEditAssignment, setEditAssignmentData }) => {
+    const { postAssessmentQuestions, patchAssessmentQuestions } = useContext(AssessmentContext);
     const [level, setLevel] = useState(null);
     const [title, setTitle] = useState(null);
     const [question, setQuestion] = useState(null);
@@ -16,6 +16,18 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
     const [examples, setExamples] = useState(
         Array.from({ length: 2 }, () => ({ input: [], output: [], explanation: [] }))
     );
+
+    useEffect(()=>{
+        if(editAssignment && editAssignmentData){
+            setQuestion(JSON.parse(editAssignmentData[0].Question).Question)
+            setTitle(JSON.parse(editAssignmentData[0].Question).Title)
+            setIsSql(JSON.parse(editAssignmentData[0].Question).SQL)
+            setLevel(editAssignmentData[0].Level)
+            setSelectedMonth(JSON.parse(editAssignmentData[0].Question).Month)
+            setTestCases(JSON.parse(editAssignmentData[0].Test_Cases))
+            setExamples(JSON.parse(editAssignmentData[0].Examples))
+        }
+    },[isOpen, editAssignment, editAssignmentData])
 
     const handleInputChange = (index, event, newValue) => {
         const newPairs = [...testCases];
@@ -72,11 +84,12 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
             Examples : JSON.stringify(examples),
             Level : level
         }
-        const res = await postAssessmentQuestions(data);
+        if(editAssignment && editAssignmentData)data['id'] = editAssignmentData[0].id;
+        const res = editAssignment && editAssignmentData ? await patchAssessmentQuestions(data) : await postAssessmentQuestions(data);
         if (res && res.message){
             handleShowSnackbar('error',res.message);
         }else if(res){
-            handleShowSnackbar('success','Assessment Question has been uploaded successfully.');
+            handleShowSnackbar('success',`Assessment Question has been ${editAssignment && editAssignmentData ? 'updated' : 'uploaded'} successfully.`);
             handleClose();
         }
         setIsLoading(false);
@@ -91,6 +104,8 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
         setQuestion(null);
         setIsOpen(false);
         setIsSql(null);
+        setEditAssignment(false);
+        setEditAssignmentData(null);
     }
 
   return (
@@ -102,7 +117,7 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
         </Box>
         <DialogTitle className='flex items-center justify-between'>
             <FormControl className='w-52' variant='standard'>
-                <InputLabel>Select Month</InputLabel>
+                <InputLabel shrink={selectedMonth} >Select Month</InputLabel>
                 <Select
                     value={selectedMonth}
                     onChange={(e)=>setSelectedMonth(e.target.value)}
@@ -125,9 +140,9 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
         <DialogContent className='max-h-[40rem] overflow-y-auto' sx={{scrollbarWidth : 'thin'}}>
             <Box className='pt-3 flex flex-col items-center justify-start h-80'>
                 <TextField className='w-full h-[5.50rem]' value={title} inputProps={{ maxLength : 40 }} onChange={(e)=>setTitle(e.target.value)}
-                 label='Question Title'/>
+                  InputLabelProps={{ shrink: title ? true : false }} label='Question Title'/>
                 <TextField multiline rows={7} onChange={(e)=>setQuestion(e.target.value)} value={question}
-                 className='w-full' label='Your Question Here...'/>
+                 InputLabelProps={{ shrink: question ? true : false }} className='w-full' label='Your Question Here...'/>
             </Box>
             <Box className='w-full flex items-center justify-between'>
                 {[0,1].map(idx=><Box className='w-[48%]'>
@@ -137,11 +152,12 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
                         sx={{margin : '15px 0'}}
                         multiple
                         freeSolo
-                        value={examples.input}
+                        value={examples[idx].input}
                         options={[]}
                         onChange={(event, newValue) => handleInput(idx, event, newValue)}
                         renderInput={(params) => (
                             <TextField
+                                multiple
                                 {...params}
                                 variant="outlined"
                                 label="Input"
@@ -153,7 +169,7 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
                         sx={{margin : '15px 0'}}
                         multiple
                         freeSolo
-                        value={examples.input}
+                        value={examples[idx].output}
                         options={[]}
                         onChange={(event, newValue) => handleOutput(idx, event, newValue)}
                         renderInput={(params) => (
@@ -169,7 +185,7 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
                         sx={{margin : '15px 0'}}
                         multiple
                         freeSolo
-                        value={examples.input}
+                        value={examples[idx].explanation}
                         options={[]}
                         onChange={(event, newValue) => handleExplanation(idx, event, newValue)}
                         renderInput={(params) => (
@@ -231,4 +247,4 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
   )
 }
 
-export default UploadCodingQuestions
+export default UploadCodingQuestions;

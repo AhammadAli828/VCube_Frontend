@@ -6,7 +6,6 @@ import { MailContext } from '../api/SendMail';
 import { CloseRounded } from '@mui/icons-material';
 import LoadingSkeleton from '../skeleton';
 import LoadingSkeletonAlternate from '../LoadingSkeletonAlternate';
-import ExpiredPage from '../ExpiredPage';
 
 const AdminForm = lazy(() => import('./admin-form'));
 const StudentForm = lazy(() => import('./student-form'));

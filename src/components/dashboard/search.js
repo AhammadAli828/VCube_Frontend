@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { Box, FormControl, InputLabel, Select, MenuItem, FormHelperText, Card, Button } from '@mui/material';
+import React, { useEffect } from 'react';
+import { Box, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
 import { AttributionRounded } from '@mui/icons-material';
 
 const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, selectedCourse, setSelectedCourse, userCourse, setShortLoading ,setTakeStdAtt }) => { 
@@ -7,7 +7,7 @@ const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, 
     useEffect(()=>{
       setSelectedBatch(sessionStorage.getItem('SelectedBatch'));
       setSelectedCourse(sessionStorage.getItem('SelectedCourse'));
-    },[])
+    },[selectedBatch, selectedCourse])
 
     const handleCourseChange = (e) => {
       setSelectedCourse(e.target.value);

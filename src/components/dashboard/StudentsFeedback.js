@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Box, Card, Dialog, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
 import { AccountCircleRounded, CloseRounded, ReviewsRounded, SpeakerNotesOffRounded } from '@mui/icons-material';
 import { mui_colors } from '../ExternalData';
@@ -14,60 +14,39 @@ const StudentsFeedback = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, ha
     const [sorting, setSorting] = useState(null);
     const [date, setDate] = useState(null);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setIsLoading(true);
-        const res = await fetchCourseFeedbackData(selectedCourse);
-        if (res && res.message){
-            handleShowSnackbar('error',res.message);
-        }else if (res){
-            const data = Array.isArray(res) && res.filter((data)=>data.BatchName === selectedBatch);
-            if(Array.isArray(data) && data.length > 0){
-                setFeedbackData([...data].reverse());
-                setF_Data([...data].reverse());
+        try {
+            const res = await fetchCourseFeedbackData(selectedCourse);
+            if (res && res.message) {
+                handleShowSnackbar('error', res.message);
+            } else if (res) {
+                const data = Array.isArray(res) 
+                    ? res.filter((data) => data.BatchName === selectedBatch) 
+                    : [];
+                if (data.length > 0) {
+                    setFeedbackData([...data].reverse());
+                    setF_Data([...data].reverse());
+                }
             }
+        } catch (error) {
+            handleShowSnackbar('error', 'An error occurred while fetching data.');
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
-    }
+    }, [selectedCourse, fetchCourseFeedbackData, setIsLoading, selectedBatch, handleShowSnackbar]);
 
-    useEffect(()=>{
-        fetchData()
-    },[isOpen])
+    useEffect(() => {
+        if (isOpen) {
+            fetchData();
+        }
+    }, [isOpen, fetchData]);
+
 
     const handleClose = () => {
         setSorting(null);
         setIsOpen(false);
     }
-
-    const filters = async () => {
-        setIsLoading(true);
-        if (!sorting){
-            setFeedbackData(f_data);
-            setIsLoading(false);
-            return;
-        }
-        if (sorting === 'High'){
-            await filterData('Very Satisfied','Satisfied');
-        }else if (sorting === 'Medium'){
-            await filterData('Neutral','Neutral');
-        }else if (sorting === 'Low'){
-            await filterData('Very Unsatisfied','Unsatisfied');
-        }else if (sorting === 'Date'){
-            if(date){
-                const filterDate = date.$d.toString().split(' ');
-                const data = f_data.filter((data)=>JSON.parse(data.FeedbackData).Date.includes(`${filterDate[1]}-${filterDate[3]}`));
-                if(data && data.length > 0){
-                    setFeedbackData(data);
-                }else{
-                    handleShowSnackbar('info','No Feedback Found.');
-                }
-            }
-        }
-        setIsLoading(false);
-    };
-
-    useEffect(()=>{
-        filters();
-    },[sorting,date])
 
     const filterData = async (filter1,filter2) => {
         const data = f_data.filter((data)=>
@@ -82,6 +61,39 @@ const StudentsFeedback = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, ha
             handleShowSnackbar('info','No Feedback Found.');
         }
     }
+
+    const filters = useCallback(async () => {
+        setIsLoading(true);
+        if (!sorting) {
+            setFeedbackData(f_data);
+            setIsLoading(false);
+            return;
+        }
+        if (sorting === 'High') {
+            await filterData('Very Satisfied', 'Satisfied');
+        } else if (sorting === 'Medium') {
+            await filterData('Neutral', 'Neutral');
+        } else if (sorting === 'Low') {
+            await filterData('Very Unsatisfied', 'Unsatisfied');
+        } else if (sorting === 'Date') {
+            if (date) {
+                const filterDate = date.$d.toString().split(' ');
+                const data = f_data.filter((data) =>
+                    JSON.parse(data.FeedbackData).Date.includes(`${filterDate[1]}-${filterDate[3]}`)
+                );
+                if (data && data.length > 0) {
+                    setFeedbackData(data);
+                } else {
+                    handleShowSnackbar('info', 'No Feedback Found.');
+                }
+            }
+        }
+        setIsLoading(false);
+    }, [f_data, sorting, setIsLoading, date, handleShowSnackbar]);
+
+    useEffect(() => {
+        filters();
+    }, [filters]);
 
     return (
     <Dialog open={isOpen} maxWidth='lg' sx={{zIndex : '700'}}>

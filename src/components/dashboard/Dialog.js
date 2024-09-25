@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 
-const CustomDialog = ({ open, title, content, btnValue, dialogMsg, setDialog, setIsLoading, handle_Close, setUploadManually, setImportData, setDelete_Assessment }) => {
+const CustomDialog = ({ open, title, content, btnValue, dialogMsg, setDialog, setIsLoading, handle_Close, setUploadManually, setImportData }) => {
     const [isOpen, setIsOpen]= useState(false);
 
     useEffect(()=>{
@@ -20,8 +20,6 @@ const CustomDialog = ({ open, title, content, btnValue, dialogMsg, setDialog, se
             handle_Close();
         }else if(btnValue === 'Export'){
             setImportData(true);
-        }else if(btnValue === 'Delete Assessment'){
-            setDelete_Assessment(true);
         }else if(btnValue === 'Return to Details'){
             handle_Close();
         };

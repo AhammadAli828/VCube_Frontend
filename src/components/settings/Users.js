@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Box, Accordion, AccordionDetails, AccordionSummary, DialogTitle, DialogActions, Dialog, Button, Typography, IconButton, DialogContent } from '@mui/material';
 import { UserDetails } from '../UserDetails';
 import { CourseContext } from '../api/Course';
@@ -16,32 +16,34 @@ const Users = ({ handleShowSnackbar, setIsLoading }) => {
   const [user_Change, setUser_Change] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
-  const fetchData = async () => {
+    const fetchData = useCallback(async () => {
       setIsLoading(true);
-      let res,re;
-      if (isUser === 'Super Admin'){
+      let res, re;
+
+      if (isUser === 'Super Admin') {
           res = await fetchCourse();
           re = await fetchLoginData();
       } else {
           res = await fetchCourse(UserDetails('Course'));
           re = await fetchLoginData(UserDetails('Course'));
       }
-      if ((res && res.message) || (re && re.message)){
-          handleShowSnackbar('error','Error while fetching data. Please try again later.');
-      }else{
-        // const data = [...res].reverse();
-        setLoginData(re);
-        const isData = Array.isArray(re) && re.some(data=>data.Course === 'Placements');
-        let data;
-        data = isData ? [...res, {Course : 'Placements'}] : res;
-        setCourseData(data);
-      }
-      setIsLoading(false);
-  }
 
-  useEffect(()=>{
+      if ((res && res.message) || (re && re.message)) {
+          handleShowSnackbar('error', 'Error while fetching data. Please try again later.');
+      } else {
+          setLoginData(re);
+          const isData = Array.isArray(re) && re.some(data => data.Course === 'Placements');
+          const data = isData ? [...res, { Course: 'Placements' }] : res;
+          setCourseData(data);
+      }
+
+      setIsLoading(false);
+  }, [isUser, fetchCourse, fetchLoginData, setIsLoading, handleShowSnackbar]);
+
+  useEffect(() => {
       fetchData();
-  },[])
+  }, [fetchData]);
+
 
   const changeDetails = async () => {
     setIsLoading(true);

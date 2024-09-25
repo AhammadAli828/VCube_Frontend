@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Box, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel, FormHelperText, MenuItem, Button } from '@mui/material';
-import { AccountCircleRounded, LocalPhoneRounded, MailRounded, LockOutlined, LockRounded, Visibility, VisibilityOff, ClassRounded, PersonAddAlt1Rounded, GroupRounded, Password, Email } from '@mui/icons-material';
+import { AccountCircleRounded, LocalPhoneRounded, MailRounded, LockOutlined, LockRounded, Visibility, VisibilityOff, ClassRounded, PersonAddAlt1Rounded, GroupRounded } from '@mui/icons-material';
 import InputField from '../InputField';
 import NumberInput from '../noSpinnerField';
 import { UserDetails } from '../UserDetails';
@@ -28,13 +28,12 @@ const AddNewUser = ({ handleShowSnackbar, setIsLoading, setTabValue }) => {
     const [showPassword2, setShowPassword2] = useState(false);
     const [onSubmit, setOnSubmit] = useState(false);
 
-
-    useEffect(()=>{
-        if (userDetails.User !== "Super Admin"){
+    useEffect(() => {
+        if (userDetails && userDetails.User !== "Super Admin") {
             setUser('User');
             setCourse(userDetails.Course);
         }
-    },[])
+    }, [userDetails]);
 
     const handleSubmit = () => {
         setOnSubmit(true);
@@ -44,96 +43,164 @@ const AddNewUser = ({ handleShowSnackbar, setIsLoading, setTabValue }) => {
         checkUserAuth();
     };
 
-    const checkUserAuth = async()=>{
-        setIsLoading(true);
-        const data = {
-            Username : userDetails.Username,
-            Password : accPassword
-        }
-        const res = await checkPassword(data);
-        setIsLoading(false);
-        if(res && res.message){
-            const status = res.response.status;
-            if (status === 401) handleShowSnackbar('error', 'Invalid Password.');
-            else if (status === 423) handleShowSnackbar('error', 'Access Denied.');
-            else if (status === 404) handleShowSnackbar('error', 'User Not Found');
-            else handleShowSnackbar('error', res.message);
-            if (status === 423 || status === 404){
-                userGoogleLogout();
-                removeUserLoginData();
-                logout();
-            }
-        }else if(res === 'Valid'){
-            setIsLoading(true);
-            (isUser === 'Super Admin') ? check_User() : checkData();
-        }
-    }
 
+    const checkUserAuth = async () => {
+        setIsLoading(true);
+        try {
+            const data = {
+                Username: userDetails.Username,
+                Password: accPassword,
+            };
+    
+            const res = await checkPassword(data);
+            
+            if (res === 'Valid') {
+                if (isUser === 'Super Admin') {
+                    await check_User();
+                } else {
+                    await checkData();
+                }
+            } else {
+                handleErrorResponse(res);
+            }
+        } catch (error) {
+            handleShowSnackbar('error', 'An unexpected error occurred.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
     const check_User = async () => {
         const data = {
-            User : user,
-            Course : course
-        }
-        const res = await checkUser(data);
-        setIsLoading(false);
-        if(res.status && res.status === 202){
-            setIsLoading(true);
-            checkData();
-        }else if(res.response.status === 226){
-            handleShowSnackbar('error',`The ${user} has already been assigned to this ${course}.`);
-        }else if(res.response.status === 406){
-            handleShowSnackbar('error',`First, add the Admin to the ${course}, and then proceed to add the User.`);
-        }else{
-            handleShowSnackbar('error',res.message);
-        }
-        
-    }
-
-    const checkData = async ()=>{
-        const data = {
-            Username : username,
-            Email : email,
-            Phone : phone
-        }
-        const res = await checkUserDetails(data);
-        setIsLoading(false);
-        if (res && res.status){
-            if (res.status === 226 && res.data.message === 'Username exists'){
-                handleShowSnackbar('error','Username is already taken. Please choose another one.');
-            }else if(res.status === 226 && res.data.message === 'Email exists'){
-                handleShowSnackbar('error','Email is already taken. Please choose another one.');
-            }else if(res.status === 226 && res.data.message === 'Phone exists'){
-                handleShowSnackbar('error','Phone is already taken. Please choose another one.');
-            }else if(res.status === 202){
-                setIsLoading(true);
-                postData();
+            User: user,
+            Course: course,
+        };
+    
+        try {
+            const res = await checkUser(data);
+            if (res && res.status && res.status === 202) {
+                await checkData();
+            } else {
+                handleUserCheckError(res);
             }
-        }else{
-            handleShowSnackbar('error',res.message);
+        } catch (error) {
+            handleShowSnackbar('error', `An unexpected error occurred while cheking user. ${error}`);
         }
-    }
-
+    };
+    
+    const checkData = async () => {
+        const data = {
+            Username: username,
+            Email: email,
+            Phone: phone,
+        };
+    
+        try {
+            const res = await checkUserDetails(data);
+    
+            if (res && res.status === 202) {
+                await postData();
+            } else {
+                handleDataCheckError(res);
+            }
+        } catch (error) {
+            console.log(error)
+            handleShowSnackbar('error', `An unexpected error occurred While CHeking details. ${error}`);
+        }
+    };
+    
     const postData = async () => {
         const data = {
-            Username : username,
-            Email : email,
-            Phone : phone,
-            Password : password,
-            Course : course,
-            User : user,
-            AddedBy : userDetails.User
+            Username: username,
+            Email: email,
+            Phone: phone,
+            Password: password,
+            Course: course,
+            User: user,
+            AddedBy: userDetails.User,
+        };
+    
+        try {
+            const res = await newUserCreate(data);
+    
+            if (res && res.message) {
+                handleShowSnackbar('error', res.message);
+            } else {
+                handleShowSnackbar('success', `User: ${username} has been created successfully.`);
+                setTabValue(0);
+            }
+        } catch (error) {
+            handleShowSnackbar('error', 'An unexpected error occurred while creating the user.');
+        } finally {
+            setIsLoading(false);
         }
-        const res = await newUserCreate(data);
-        setIsLoading(false);
-        if(res && res.message){
-            handleShowSnackbar('error',res.message);
-        }else{
-            handleShowSnackbar('success',`User : ${username} has been created successfully.`);
-            setTabValue(0);
+    };
+    
+    const handleErrorResponse = (res) => {
+        if (res && res.message && res.response) {
+            const status = res.response.status;
+            switch (status) {
+                case 401:
+                    handleShowSnackbar('error', 'Invalid Password.');
+                    break;
+                case 423:
+                    handleShowSnackbar('error', 'Access Denied.');
+                    userGoogleLogout();
+                    removeUserLoginData();
+                    logout();
+                    break;
+                case 404:
+                    handleShowSnackbar('error', 'User Not Found.');
+                    userGoogleLogout();
+                    removeUserLoginData();
+                    logout();
+                    break;
+                default:
+                    handleShowSnackbar('error', res.message);
+                    break;
+            }
         }
-        
-    }
-
+    };
+    
+    const handleUserCheckError = (res) => {
+        console.log(res);
+        const status = res.response ? res.response.status : res.status;
+        switch (status) {
+            case 226:
+                handleShowSnackbar('error', `The ${user} has already been assigned to this ${course}.`);
+                break;
+            case 406:
+                handleShowSnackbar('error', `First, add the Admin to the ${course}, and then proceed to add the User.`);
+                break;
+            default:
+                handleShowSnackbar('error', res.message);
+                break;
+        }
+    };
+    
+    const handleDataCheckError = (res) => {
+        if (res && res.status === 226) {
+            const message = res.data.message;
+            switch (message) {
+                case 'Username exists':
+                    handleShowSnackbar('error', 'Username is already taken. Please choose another one.');
+                    break;
+                case 'Email exists':
+                    handleShowSnackbar('error', 'Email is already taken. Please choose another one.');
+                    break;
+                case 'Phone exists':
+                    handleShowSnackbar('error', 'Phone is already taken. Please choose another one.');
+                    break;
+                default:
+                    handleShowSnackbar('error', res.message);
+                    break;
+            }
+        } else {
+            handleShowSnackbar('error', res.message);
+        }
+    };
+    
+    
     const checkPhoneError = (getvalue)=>{
         const value = getvalue && getvalue.toString();
         if (onSubmit && !value)return true;
@@ -175,7 +242,7 @@ const AddNewUser = ({ handleShowSnackbar, setIsLoading, setTabValue }) => {
                 error={(onSubmit && !accPassword)}
                 helperText={(onSubmit && !accPassword) ? "Invalid Password" : ""}
                 type={showPassword1 ? 'text' : 'password'}
-                label="Your Account Password"
+                label="Your Current Account Password"
                 value={accPassword}
                 onChange={(e) => {setAccPassword(e.target.value)}}
                 variant="standard"
@@ -196,7 +263,7 @@ const AddNewUser = ({ handleShowSnackbar, setIsLoading, setTabValue }) => {
         </Box>
         <Box className='h-20 flex flex-row items-start justify-between'>
             <LockOutlined className='text-slate-400' sx={{fontSize : '30px', marginTop : '20px'}} />
-            <InputField className='w-[88%]' label='Password' type='password' error={(onSubmit && !password) || (onSubmit && password !== conPassword)} helperText={onSubmit && !password ? 'Enter Password' : (onSubmit && password !== conPassword) ? "Password Doesn't Match" : ''}
+            <InputField className='w-[88%]' label='New User Password' type='password' error={(onSubmit && !password) || (onSubmit && password !== conPassword)} helperText={onSubmit && !password ? 'Enter Password' : (onSubmit && password !== conPassword) ? "Password Doesn't Match" : ''}
                 value={password} onChange={(e)=>setPassword(e.target.value)} />
         </Box>
         <Box className='h-20 flex flex-row items-start justify-between'>
@@ -214,7 +281,7 @@ const AddNewUser = ({ handleShowSnackbar, setIsLoading, setTabValue }) => {
                 error={(onSubmit && !conPassword) || (password && conPassword && password !== conPassword)}
                 helperText={(onSubmit && !conPassword) ? "Invalid Password" : (password && conPassword && password !== conPassword) ? "Password Doesn't Match" : ""}
                 type={showPassword2 ? 'text' : 'password'}
-                label="Confirm Password"
+                label="Confirm New User Password"
                 value={conPassword}
                 onChange={(e) => {setConPassword(e.target.value)}}
                 variant="standard"

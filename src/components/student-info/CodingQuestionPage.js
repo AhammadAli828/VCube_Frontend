@@ -98,7 +98,7 @@ const CodingQuestionPage = ({ results, questionData, tabValue, setTabValue, hand
           </Typography>
         </Typography>
         {Array.isArray(results.results) && results.results.map((result,index)=>(
-          <Accordion expanded={expand === index} onChange={()=>setExpand(expand == index ? null : index)} 
+          <Accordion expanded={expand === index} onChange={()=>setExpand(expand === index ? null : index)} 
             sx={{boxShadow : '0 0 5px rgba(0,0,0,0.5)', width : '98%'}}>
           <AccordionSummary expandIcon={<ExpandMore/>}>
             <Box className='w-[95%] h-full flex items-center justify-between'>

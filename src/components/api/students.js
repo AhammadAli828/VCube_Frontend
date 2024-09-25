@@ -306,13 +306,61 @@ export const StudentsProvider = ({ children }) => {
         }
       }
 
+      const fetchStudentWatchTimeData = async (id) => {
+        try{
+            const res = await axios.get(`${process.env.REACT_APP_STUDENT_WATCHTIME_API}${id}/`,{
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            return res.data;
+        }catch(err){
+            return err;
+        }
+      }
+
+
+      const postStudentWatchTimeData = async (data) => {
+        try{
+            const res = await axios.post(process.env.REACT_APP_STUDENT_WATCHTIME_API, data,{
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            return true;
+        }catch(err){
+            return err;
+        }
+      }
+
+
+      const patchStudentWatchTimeData = async (data) => {
+        try{
+            const res = await axios.patch(process.env.REACT_APP_STUDENT_WATCHTIME_API, data,{
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            return true;
+        }catch(err){
+            return err;
+        }
+      }
+
+
     return (
         <StudentsContext.Provider value={{ postStudentData, fetchStudentsData, fetchStudentsDataById, patchStudentData, deleteStudentData,
                                         getStudentAttendanceById, getStudentAttendanceByCourse, postStudentAttendance,
                                         fetchStudentMessageData, postStudentMessageData, deleteStudentMessageData,
                                         fetchBatchToStudentMessageData, postBatchToStudentMessageData, deleteBatchToStudentMessageData,
-                                        postBulkStudentData, deleteBulkStudentData, deleteStudentRecords
-                                        }}>
+                                        postBulkStudentData, deleteBulkStudentData, deleteStudentRecords,
+                                        fetchStudentWatchTimeData, postStudentWatchTimeData, patchStudentWatchTimeData}}>
             {children}
         </StudentsContext.Provider>
     );

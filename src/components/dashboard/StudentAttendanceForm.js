@@ -4,7 +4,6 @@ import { CheckCircleRounded, CloseRounded } from '@mui/icons-material';
 import { DateTime } from '../date-time';
 import { StudentsContext } from '../api/students';
 import { BatchAttendanceContext } from '../api/batch-attendance';
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const StudentAttendanceForm = ({ isOpen, setIsOpen, stdData, handleShowSnackbar, setIsLoading, fetchStdData, studentAttData, studentsData, selectedCourse, selectedBatch }) => {
     const { postStudentAttendance } = useContext(StudentsContext);
@@ -30,15 +29,13 @@ const StudentAttendanceForm = ({ isOpen, setIsOpen, stdData, handleShowSnackbar,
         })
     },[selectedBatch, isOpen]);
 
-    let count = 0;
-    let res;
     const handleSubmit = async() => {
         if(!checkedList || (checkedList && checkedList.length === 0)){
             handleShowSnackbar('error','Select alteast one option to add Attendance.');
         }else{
             setIsLoading(true);
+            const dataArr = []
             for (const std of stdData) {
-                count++;
                 for (const chk of checkedList){
                     const data = {
                         StudentId: std.id,
@@ -48,17 +45,15 @@ const StudentAttendanceForm = ({ isOpen, setIsOpen, stdData, handleShowSnackbar,
                         Date: dateTime[0],
                         Attendance_Type: chk,
                     };
-                    res = await postStudentAttendance(data);
-                    await delay(10);
+                    dataArr.push(data);
                 }
-                if(count === stdData.length){
-                    if(res && res.message){
-                        handleShowSnackbar('error',res.message);
-                    }else{
-                        handleShowSnackbar('success','Student Attendance added successfully.');
-                        handleClose();
-                    }
-                }
+            }
+            const res = await postStudentAttendance(dataArr);
+            if(res && res.message){
+                handleShowSnackbar('error',res.message);
+            }else{
+                handleShowSnackbar('success','Student Attendance added successfully.');
+                handleClose();
             }
         }
         setIsLoading(false);

@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
-import { Box, Button, FormControl, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Box, Button, FormControl, IconButton, InputLabel, MenuItem, Select } from '@mui/material';
 import { StudentAttendanceCalendar } from './AddAtendanceCalender';
 import { CalendarMonthRounded, ChecklistRounded } from '@mui/icons-material';
+import { StudentsContext } from '../api/students';
 
-const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYear, setSelectedYear, JoiningDate }) => {
+const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYear, setSelectedYear, JoiningDate, stdId, handleShowSnackbar, name, phone }) => {
+  const { fetchStudentWatchTimeData } = useContext(StudentsContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [month, setMonth] = useState(null);
   const [batchDays, setBatchDays] = useState([]);
@@ -14,8 +16,9 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
   const [attType, setAttType] = useState(null);
   const [submit, setSubmit] = useState(false);
   const [selectedValue, setSelectedValue] = useState(0);
+  const [watch_Time_Arr, setWatch_Time_Arr] = useState([]);
 
-  const xLabels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const xLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   const years = []
   for(let year = 2021; year <= new Date().getFullYear(); year++){years.push(year)}
@@ -39,8 +42,11 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
     return monthYearList;
   };
 
-
   const getDatesData = () => {
+    if(attType === 'Watch Time'){
+      getWatchTime();
+      return;
+    }
     const stdData = Array.isArray(stdAttendanceData) && stdAttendanceData.filter(data=>data.Date.split('-')[2] === `${selectedYear}` && attType === 'Assignment' ? data.Attendance_Type.split('~')[0] === attType : data.Attendance_Type === attType);
     const batchData = Array.isArray(batchAttendanceData) && batchAttendanceData.filter(data=>data.Date.split('-')[2] === `${selectedYear}` && data.Attendance_Type === attType);
 
@@ -48,7 +54,7 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
     xLabels.forEach((month)=>{
       let cnt = 0;
       Array.isArray(stdData) && stdData.forEach((std)=>{
-        if(std.Date.split('-')[1] === month.substring(0,3) && (attType === 'Assignment' ? std.Attendance_Type.split('~')[0] : std.Attendance_Type) === attType)cnt++;
+        if(std.Date.split('-')[1] === month && (attType === 'Assignment' ? std.Attendance_Type.split('~')[0] : std.Attendance_Type) === attType)cnt++;
       })
       setStudentDays((pre)=>[...pre,cnt]);
     })
@@ -57,16 +63,16 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
     xLabels.forEach((month, index)=>{
       let cnt = 0;
       Array.isArray(batchData) && batchData.forEach((batch)=>{
-        if(batch.Date.split('-')[1] === month.substring(0,3) && batch.Attendance_Type === attType)cnt++;
+        if(batch.Date.split('-')[1] === month && batch.Attendance_Type === attType)cnt++;
       })
-      attType === 'Assignment' && generateMonthYearRangeUntilToday(JoiningDate).includes(`${month.substring(0,3)}-${selectedYear}`) ? setBatchDays((pre)=>[...pre,monthDays[index]]) : setBatchDays((pre)=>[...pre,cnt]);
+      attType === 'Assignment' && generateMonthYearRangeUntilToday(JoiningDate).includes(`${month}-${selectedYear}`) ? setBatchDays((pre)=>[...pre,monthDays[index]]) : setBatchDays((pre)=>[...pre,cnt]);
     })
 
     setBatchMonthDates([]);
     xLabels.forEach((month)=>{
       let months = [];
       batchData.forEach((batch)=>{
-        if(batch.Date.split('-')[1] === month.substring(0,3) && batch.Attendance_Type === attType)months.push(batch.Date.split('-')[0]);
+        if(batch.Date.split('-')[1] === month && batch.Attendance_Type === attType)months.push(batch.Date.split('-')[0]);
       })
       setBatchMonthDates((pre)=>[...pre, months])
     })
@@ -75,7 +81,7 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
     xLabels.forEach((month)=>{
       let months = [];
       Array.isArray(stdData) && stdData.forEach((std)=>{
-        if(std.Date.split('-')[1] === month.substring(0,3) && (attType === 'Assignment' ? std.Attendance_Type.split('~')[0] : std.Attendance_Type) === attType)months.push(std.Date.split('-')[0]);
+        if(std.Date.split('-')[1] === month && (attType === 'Assignment' ? std.Attendance_Type.split('~')[0] : std.Attendance_Type) === attType)months.push(std.Date.split('-')[0]);
       })
       setStdMonthDates((pre)=>[...pre, months])
     })
@@ -84,6 +90,33 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
   useEffect(()=>{
     getDatesData();
   },[selectedYear])
+
+  const getWatchTime = async () => {
+    setStdMonthDates([]);
+    setStudentDays([]);
+    setBatchDays([]);
+    setBatchMonthDates([]);
+    setWatch_Time_Arr([]);
+    const data = await fetchStudentWatchTimeData(stdId);
+    if(data && data.message){
+      handleShowSnackbar('error',`An error occured ${data.message}`);
+    }else if(data){
+      xLabels.forEach((month)=>{
+        let months = [];
+        Array.isArray(data) && data.forEach((w_t_data, index)=>{
+          if(w_t_data.Name === `${name}~${phone}` && `${w_t_data.Date.split('-')[1]}-${w_t_data.Date.split('-')[2]}` === `${month}-${selectedYear}`){
+            months.push(w_t_data.Date.split('-')[0]);
+            setWatch_Time_Arr((pre)=>({...pre, [w_t_data.Date.split('-')[0]] : w_t_data.WatchTime}))
+          }
+        })
+      setStdMonthDates((pre)=>[...pre, months])
+      setStudentDays((pre)=>[...pre,months.length]);
+      setBatchDays((pre)=>[...pre,months.length]);
+      })
+    }
+  }
+
+  console.log(watch_Time_Arr)
 
   const handleClick = (event,idx,value) => {
     setMonth(`${xLabels[idx]}~${monthDays[idx]}~${idx}`);
@@ -119,7 +152,7 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
             <Select
               value={attType}
               onChange={(e)=>{setAttType(e.target.value);setSubmit(false)}}>
-              {['Class','Assignment','Mock Test','Interview'].map(value=><MenuItem value={value}>{value}</MenuItem>)}
+              {['Class','Assignment','Watch Time','Mock Test','Interview'].map(value=><MenuItem value={value}>{value}</MenuItem>)}
             </Select>
           </FormControl>
       </Box>
@@ -136,7 +169,7 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
       </Box>
       <Button variant='contained' sx={{width : '20%', height : '40px', borderRadius : '20px'}} onClick={()=>{setSubmit(true);getDatesData()}}>Submit</Button>
       </Box>
-      <StudentAttendanceCalendar open={open} id={id} anchorEl={anchorEl} setAnchorEl={setAnchorEl} month={month} year={selectedYear && selectedYear} stdMonthDates={stdMonthDates} batchMonthDates={batchMonthDates} attType={attType} selectedValue={selectedValue} />
+      <StudentAttendanceCalendar open={open} id={id} anchorEl={anchorEl} setAnchorEl={setAnchorEl} month={month} year={selectedYear && selectedYear} stdMonthDates={stdMonthDates} batchMonthDates={batchMonthDates} attType={attType} selectedValue={selectedValue} watch_Time_Arr={watch_Time_Arr} />
     </Box>
     )
 }

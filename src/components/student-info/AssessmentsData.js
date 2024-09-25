@@ -113,7 +113,7 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
                     {JSON.parse(data.Question).SQL === 'Yes' && <img src='/images/Logo-MySql.png' alt='' width='7%' className='ml-5' />}
                 </Typography>
                 <Box className='w-64 flex items-center justify-between'>
-                    <Typography className='bg-green-100 text-green-600 w-[4.50rem] text-center rounded-md'>Easy</Typography>
+                    <Typography className={`${data.Level === 'Easy' ? 'bg-green-100' : data.Level === 'Medium' ? 'bg-orange-100' : 'bg-red-100'} ${data.Level === 'Easy' ? 'text-green-600' : data.Level === 'Medium' ? 'text-orange-600' : 'text-red-600'} w-[4.50rem] text-center rounded-md`}>{data.Level}</Typography>
                     <Button endIcon={!checkSolved(data.id) && <ArrowForwardRounded/>} variant='contained' onClick={()=>{setSolveAssessmentData(data);setSolveAssesments(true);setIsOpen(false)}}
                     sx={{background : checkSolved(data.id) ? '#dcfce7' : '', color : checkSolved(data.id) ? '#16a34a' : 'white', ':hover' : {background : checkSolved(data.id) && '#dcfce7'}}}>{checkSolved(data.id) ? 'SOLVED' : 'SOLVE'}</Button>
                 </Box>

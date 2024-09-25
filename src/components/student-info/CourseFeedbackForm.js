@@ -1,6 +1,6 @@
-import React, { startTransition, useContext, useEffect, useState } from 'react';
-import { CloseRounded, Recommend } from '@mui/icons-material'
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Radio, Slider, TextField, Typography } from '@mui/material';
+import React, { startTransition, useContext, useEffect, useState, useCallback } from 'react';
+import { CloseRounded } from '@mui/icons-material'
+import { Box, Button, Dialog, DialogActions, DialogTitle, IconButton, Radio, Slider, TextField, Typography } from '@mui/material';
 import { FeedbackContext } from '../api/Feedback';
 import { DateTime } from '../date-time';
 
@@ -20,25 +20,28 @@ const CourseFeedbackForm = ({ isOpen, setIsOpen, course, batchName, handleShowSn
     const [feedbackMsg, setFeedbackMsg] = useState(null);
     const names = ['Very Unsatisfied','Unsatisfied','Nuetral','Satisfied','Very Satisfied'];    
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setIsLoading(true);
         const res = await fetchFeedbackFormLists(course);
         setIsLoading(false);
-        if (res && res.message){
-            (res.response && res.response.status !== 404) ? handleShowSnackbar('error',res.message) : setFeedbackQuestion(feedbackQuestion1);
-        }else if(res){
-            if(Array.isArray(res)){
-                const selectedData = res.find((data)=>data.Selected);
+        
+        if (res && res.message) {
+            res.response && res.response.status !== 404 
+                ? handleShowSnackbar('error', res.message) 
+                : setFeedbackQuestion(feedbackQuestion1);
+        } else if (res) {
+            if (Array.isArray(res)) {
+                const selectedData = res.find(data => data.Selected);
                 setFeedbackQuestion(selectedData ? selectedData.FeedbackData : feedbackQuestion1);
             }
         }
-    }
+    }, [course, feedbackQuestion1, handleShowSnackbar]);
 
-    useEffect(()=>{
-        startTransition(()=>{
-            fetchData()
-        })
-    },[])
+    useEffect(() => {
+        startTransition(() => {
+            fetchData();
+        });
+    }, [fetchData]);
 
     const handleChange = (index) => (event) => {
         const newValues = [...selectedValues];

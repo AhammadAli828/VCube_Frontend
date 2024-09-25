@@ -56,13 +56,11 @@ const BatchOptions = ({ courseData, openBatchOption, setOpenBatchOption, batchOp
                     Course : (userCourse === 'All') ? course : userCourse
                 }
                 const result = await postBatchData(data);
-                setTimeout(()=>{
-                    if (result === true){
-                        handleShowSnackbar('success',`${batch} added successfully.`);
-                    }else if(result && result.message){
-                        handleShowSnackbar('error',result.message);
-                    }
-                },1000);
+                if (result === true){
+                    handleShowSnackbar('success',`${batch} added successfully.`);
+                }else if(result && result.message){
+                    handleShowSnackbar('error',result.message);
+                }
             }
             handleClose();
             setIsLoading(false);

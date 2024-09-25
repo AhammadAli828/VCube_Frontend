@@ -5,13 +5,14 @@ import { CancelRounded, CheckCircleRounded, CloseRounded } from '@mui/icons-mate
 import { BatchContext } from '../api/batch';
 import { BatchAttendanceContext } from '../api/batch-attendance';
 
-const BatchAttendance = ({ isOpen, setIsOpen, selectedCourse, type, handleShowSnackbar, setIsLoading, fetchBatchAttData }) => {
+const BatchAttendance = ({ isOpen, setIsOpen, selectedCourse, type, handleShowSnackbar, setIsLoading, fetchBatchAttData, studentsData, select_Batch }) => {
     const { fetchBatchData } = useContext(BatchContext);
     const { fetchBatchAttendanceDataByCourse, postBatchAttendanceData } = useContext(BatchAttendanceContext);
     const [batchData, setBatchData] = useState([]);
     const [batchAttendanceData, setBatchAttendanceData] = useState(null);
     const [selectedBatch, setSelectedBatch] = useState(null);
     const [isSubmit, setIsSubmit] = useState(null);
+    const studentCount = Array.isArray(studentsData) ? studentsData.filter((data)=> data.Course === selectedCourse && (data.BatchName === select_Batch || select_Batch === 'All')).length : 0;
     const dateTime = DateTime().split(' ');
 
     const fetchData = async () => {
@@ -43,12 +44,13 @@ const BatchAttendance = ({ isOpen, setIsOpen, selectedCourse, type, handleShowSn
         setIsSubmit(true);
         if(!selectedBatch)return;
         setIsLoading(true);
-        setTimeout(()=>{makeData()},1000);
+        makeData();
     }
 
     const makeData = () => {
         if(selectedBatch === 'All'){
-            batchData && batchData.forEach((batchData,index)=>{
+            const batchAttData = []
+            batchData && batchData.forEach((batchData)=>{
                 const data = {
                     BatchId : batchData.id,
                     Course : batchData.Course,
@@ -56,10 +58,10 @@ const BatchAttendance = ({ isOpen, setIsOpen, selectedCourse, type, handleShowSn
                     Date : dateTime[0],
                     Attendance_Type : type
                 }
-                setTimeout(()=>{
-                    postData(data,index);
-                },5 * index);
+                batchAttData.push(data);
             })
+            postData(batchAttData);
+            setIsLoading(false);
         }else{
             const getBatchData = batchData && batchData.find(data=>data.BatchName === selectedBatch);
             const data = {
@@ -69,14 +71,13 @@ const BatchAttendance = ({ isOpen, setIsOpen, selectedCourse, type, handleShowSn
                 Date : dateTime[0],
                 Attendance_Type : type
             }
-            postData(data);
+            postData([data]);
         }
     }
 
-    const postData = async (data,idx) => {
+    const postData = async (data) => {
         const res = await postBatchAttendanceData(data);
         setIsLoading(false);
-        if(idx && batchData.length - 1 !== idx)return;
         if(res && res.message){
             handleShowSnackbar('error',res.message);
         }else{
@@ -117,7 +118,7 @@ const BatchAttendance = ({ isOpen, setIsOpen, selectedCourse, type, handleShowSn
                     Date: <Typography color='primary' variant='h6' sx={{fontWeight : 'bold', marginLeft : '10px'}}>{`${dateTime[0]}`}</Typography>
                 </Typography>
                 <Typography variant='h6' className='flex items-center' sx={{fontWeight : 'bold',color : '#000'}}>
-                    Total Students: <Typography color='primary' variant='h6'  sx={{fontWeight : 'bold', margin : '10px 0 10px 10px'}}>10</Typography>
+                    Total Students: <Typography color='primary' variant='h6'  sx={{fontWeight : 'bold', margin : '10px 0 10px 10px'}}>{studentCount < 10 ? `0${studentCount}` : studentCount}</Typography>
                 </Typography>
                 <FormControl className='w-96 h-20' sx={{margin : '20px 0 10px 0'}}>
                     <InputLabel className='flex items-center' sx={{fontSize : '20px',background : 'white', width : '123px', paddingLeft : '3px', display : 'flex', alignItems : 'center'}}

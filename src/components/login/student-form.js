@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useContext, startTransition } from 'react';
-import { Box, Typography, Button, MenuItem, FormControl, InputLabel, Select, FormHelperText } from '@mui/material';
-import { AccountCircle, GroupRounded, LaptopChromebookRounded, PersonRounded, PinOutlined } from '@mui/icons-material';
+import { Box, Typography, Button } from '@mui/material';
+import { AccountCircle, LaptopChromebookRounded, PersonRounded, PinOutlined } from '@mui/icons-material';
 import NumberInput from '../noSpinnerField';
 import { DateTime } from '../date-time';
 import InputField from '../InputField';
@@ -26,7 +26,6 @@ const StudentForm = ({ isStudentLogin, setStudentLogin, setIsLoading, handleShow
     isOTPError: false
   });
 
-  const dateTime = DateTime().split(' ');
   const navigate = useNavigate();
 
   const setField = useCallback((field, value) => {
@@ -93,7 +92,7 @@ const StudentForm = ({ isStudentLogin, setStudentLogin, setIsLoading, handleShow
       setIsLoading(false);
     }
     })
-  }, [state, stdGoogleLogout, stdGoogleLogin, handleShowSnackbar, stdAuthenticateOTP, setField]);
+  }, [state, stdGoogleLogout, stdGoogleLogin, checkStudentDetails, setIsLoading, handleShowSnackbar, stdAuthenticateOTP, setField]);
 
   const stdAuthenticate = useCallback(async () => {
     startTransition(async () => {
@@ -118,7 +117,7 @@ const StudentForm = ({ isStudentLogin, setStudentLogin, setIsLoading, handleShow
       setIsLoading(false);
     }
     })
-  }, [state, studentAuthenticate, stdLogin, navigate, handleShowSnackbar, removeStudentLoginData]);
+  }, [state, studentAuthenticate, stdLogin, navigate, setIsLoading, handleShowSnackbar, removeStudentLoginData]);
 
   const authenticateOTP = useCallback(() => {
     if (parseInt(state.userOTP) === parseInt(state.sentOTP)){

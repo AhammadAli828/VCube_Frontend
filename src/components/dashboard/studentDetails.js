@@ -115,7 +115,7 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
     { field: 'name', headerName: 'Name', width: 200, headerClassName: 'text-lg' },
     { field: 'batch', headerName: 'Batch', width: 180, headerClassName: 'text-lg' },
     { field: 'phone', headerName: 'Phone', width: 150, headerClassName: 'text-lg' },
-    { field: 'email', headerName: 'Email', width: 270, headerClassName: 'text-lg' },
+    { field: 'email', headerName: 'Email', width: 260, headerClassName: 'text-lg' },
     { field: 'highest_Degree', headerName: 'Highest Degree', width: 170, headerClassName: 'text-lg' },
     { field: 'passout_Year', headerName: 'Passout Year', width: 130, headerClassName: 'text-lg' },
     {
@@ -175,6 +175,7 @@ const rows = useMemo(() => {
     const filename = `VCUbe_${selectedCourse}_${selectedBatch}_Students_Data.xlsx`;
     XLSX.writeFile(wb, filename);
     handleShowSnackbar('success','Data Imported Successfully');
+    setIsLoading(false);
   };
 
   useEffect(()=>{
@@ -223,8 +224,6 @@ const rows = useMemo(() => {
         columns={columns}
         sx={{
           cursor : 'pointer',
-          '& .MuiDataGrid-columnHeader': {
-          },
         }}
         initialState={{
           pagination: {

@@ -7,8 +7,8 @@ export const AssessmentContext = createContext();
 
 export const AssessmentProvider = ({ children }) => {
 
-    const fetchAssessmentQuestions = async (course) =>{
-        const url = course ? `${process.env.REACT_APP_ASSESSMENT_QUESTIONS_API}course/${course}/` : process.env.REACT_APP_ASSESSMENT_QUESTIONS_API;
+    const fetchAssessmentQuestions = async (course, id) =>{
+        const url = course ? `${process.env.REACT_APP_ASSESSMENT_QUESTIONS_API}course/${course}/` : `${process.env.REACT_APP_ASSESSMENT_QUESTIONS_API}${id}/`;
         try{
             const res = await axios.get(url,{
                 headers : {
@@ -26,6 +26,23 @@ export const AssessmentProvider = ({ children }) => {
     const postAssessmentQuestions = async (data) => {
         try{
             const res = await axios.post(process.env.REACT_APP_ASSESSMENT_QUESTIONS_API, JSON.stringify(data),{
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            PlaySound('success');            
+            return true;
+        }catch(err){
+            PlaySound('error');
+            return err;
+        }
+    }
+
+    const patchAssessmentQuestions = async (data) => {
+        try{
+            const res = await axios.patch(process.env.REACT_APP_ASSESSMENT_QUESTIONS_API, JSON.stringify(data),{
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${userTknDetails()}`,
@@ -111,7 +128,7 @@ export const AssessmentProvider = ({ children }) => {
 
     return (
         <AssessmentContext.Provider value={{ fetchAssessmentQuestions, postAssessmentQuestions, deleteAssessmentQuestions,
-                                            fetchRecordings, postRecordings, deleteRecordings
+                                            fetchRecordings, postRecordings, deleteRecordings, patchAssessmentQuestions
         }}>
             {children}
         </AssessmentContext.Provider>

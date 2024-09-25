@@ -81,7 +81,7 @@ const ChangeDetails = ({ user, handleShowSnackbar, setIsLoading, image }) => {
         const res = await userUpdate(data);
         setIsLoading(false);
         setAccPassword(null);
-        if (res == true){
+        if (res === true){
             handleShowSnackbar('success','Details has been updated successfully.');
         }else{
             handleShowSnackbar('error','Something went wrong. Please try again later.');

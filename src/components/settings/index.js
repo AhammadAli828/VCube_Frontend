@@ -18,9 +18,12 @@ const UserSettings = ({ settingsOpen, setSettingsOpen, handleShowSnackbar }) => 
     const isUser = UserDetails('User');
     const [tabValue, setTabValue] = useState(0);
     const [image, setImage] = useState(user.Image || null);
-    const [selectedYear, setSelectedYear] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
-    const [imageColor, setImageColor] = useState(mui_colors[Math.floor(Math.random() * 20)])
+    const [imageColor, setImageColor] = useState(null)
+
+    useEffect(()=>{
+      setImageColor(mui_colors[Math.floor(Math.random() * 20)])
+    },[settingsOpen])
 
     const xLabels = [
       'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
@@ -107,7 +110,7 @@ const UserSettings = ({ settingsOpen, setSettingsOpen, handleShowSnackbar }) => 
                     </Box>
                     {(tabValue === 0) ? (<ChangeDetails user={user} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} image={image} />) : 
                     (tabValue === 1) ? (<AddNewUser handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} setTabValue={setTabValue} />) : 
-                    (tabValue === 2) ? (<PerformanceInsights xLabels={xLabels} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />) : 
+                    (tabValue === 2) ? (<PerformanceInsights xLabels={xLabels}  setIsLoading={setIsLoading} />) : 
                     (tabValue === 3) ? (<Permissions handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} />) :
                     (<Users handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} />)}
                     </Box>

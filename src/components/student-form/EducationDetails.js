@@ -59,7 +59,7 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
             setPGStartYear(educationData.PG_Start_Year);
             setPGPassYear(educationData.PG_Passed_Year);
         }
-    },[educationData])
+    },[educationData, highDegree])
 
     const saveData = () => {
         const data = {

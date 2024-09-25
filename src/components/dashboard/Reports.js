@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Typography } from '@mui/material';
+import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip, Typography } from '@mui/material';
 import { CancelRounded, CheckCircleRounded, CloseRounded, ReportOffRounded, ReportRounded } from '@mui/icons-material';
 import { MailContext } from '../api/SendMail';
 import { getMonthsDifference } from './StudentProgressOverview';
@@ -48,7 +48,7 @@ const Reports = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setRepor
         const res = await patchReportData(change);
         setChange(null);
         setIsLoading(false);
-        if (res == true){
+        if (res === true){
             handleShowSnackbar('success', 'Report status has been changed successfully.');
         }else if(res && res.message){
             handleShowSnackbar('error', `An error occured. ${res.message}`);
@@ -66,7 +66,7 @@ const Reports = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setRepor
         <DialogTitle variant='h5'>Reports <ReportRounded/></DialogTitle>
         {Array.isArray(reportData) && reportData.length > 0 ? 
         <DialogContent className='w-[40rem] h-[40rem] overflow-auto' sx={{scrollbarWidth : 'thin'}}>
-            {reportData.map((data,index)=>(
+            {reportData.map((data,index)=>(<Tooltip title={data.Error_Message} arrow>
             <Card className='w-full h-28 p-3 flex items-center justify-between border-[1px] border-slate-300 mb-3' key={index}>
                 <ReportRounded color='error' fontSize='large' />
                 <Box className='w-[80%] h-full flex flex-col items-center justify-evenly'>
@@ -79,6 +79,7 @@ const Reports = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setRepor
                     <Typography className='w-[85%] text-slate-600'>{JSON.parse(data.Error_Type).join(', ')}</Typography>
                 </Box>
                 </Box>
+                <Tooltip title={`Report Status: ${data.Status}`} arrow>
                 <Box className={`relative w-[2.60rem] h-6 ${(data.Status === 'Solved') ? 'bg-green-600' : 'bg-red-600'} rounded-full flex items-center`}>
                     <IconButton className={`absolute ${(data.Status === 'Solved') ? 'left-[1.15rem]' : 'left-[-0.03rem]'}`} 
                         sx={{transition : '0.3s ease-in-out', zIndex : '10',width : '1.50rem', width : '1.50rem', height : '2.25rem'}} 
@@ -87,7 +88,8 @@ const Reports = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setRepor
                         (<CancelRounded sx={{color : '#fff'}} />)}
                     </IconButton>
                 </Box>
-            </Card>))}
+                </Tooltip>
+            </Card></Tooltip>))}
         </DialogContent>
         :
         <DialogContent className='h-[20rem] flex flex-col items-center justify-center'>
@@ -97,11 +99,10 @@ const Reports = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setRepor
     </Dialog>
 
     <Dialog open={change} sx={{zIndex : '710'}} maxWidth='lg' >
-        <DialogTitle>Are you sure the issue has been reolved ?</DialogTitle>
+        <DialogTitle variant='h5'>Are you sure you want to change the status of an issue ?</DialogTitle>
         <DialogContent>
             <DialogContentText>
-                <Typography color='error'>Note: All resolved issues will be automatically deleted permanently after one month.</Typography>
-                <Typography color='primary' sx={{margin : '20px 0'}}>This action will make it so that this issue can no longer be considered.</Typography>
+                <Typography color='error' variant='h6' >Note: All resolved issues will be automatically deleted permanently after one month.</Typography>
             </DialogContentText>
         </DialogContent>
         <DialogActions>

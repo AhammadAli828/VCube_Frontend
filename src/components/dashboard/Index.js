@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, lazy, Suspense, useCallback } from 'react';
 import { Box, IconButton, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, Badge, Tooltip } from '@mui/material';
-import { CloseRounded, CloudRounded, FlipCameraAndroidRounded, HomeRounded, NotificationsRounded, ReportRounded, ThreePRounded } from '@mui/icons-material';
+import { CloseRounded, CloudRounded, FlipCameraAndroidRounded, HomeRounded, NotificationsRounded, ReportProblemRounded, ReportRounded, ThreePRounded } from '@mui/icons-material';
 import { useAuth } from '../api/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
@@ -11,7 +11,8 @@ import { BatchAttendanceContext } from '../api/batch-attendance';
 import { UserGoogleContext } from '../api/Google';
 import { UserDetails } from '../UserDetails';
 import { UseUserAuthentication } from '../api/LoginCheck';
-import axios from 'axios';
+import UpdateDeleteAssignment from './UpdateDeleteAssignment';
+import ReportDialog from '../ReportDialog';
 
 const StudentProgressOverview = lazy(() => import('./StudentProgressOverview'));
 const Search = lazy(() => import('./search'));
@@ -92,6 +93,9 @@ const Dashboard = () => {
   const [openDrive, setOpenDrive] = useState(false);
   const [openReport, setOpenReport] = useState(false);
   const [reportLen, setReportLen] = useState(0);
+  const [editAssignment, setEditAssignment] = useState(false);
+  const [editAssignmentData, setEditAssignmentData] = useState(null);
+  const [reportIssue, setReportIssue] = useState(false);
 
   const handleShowSnackbar = useCallback((variant, message) => {
     enqueueSnackbar(message, {
@@ -157,23 +161,13 @@ const Dashboard = () => {
     if (userCourse !== 'All')setSelectedCourse(userCourse);
   }, [shortLoading, isLoading]);
 
-  const deleteAllStudents = async () => {
-    try {
-      const res = await axios.delete('http://127.0.0.1:8000/vcube/delete/all/students/');
-      handleShowSnackbar('success','Deleted all Students')
-    } catch (err) {
-      handleShowSnackbar('error',`Error deleting students: ${err}`);
-    }
-  };
-  
-
 
   if(isUserAuthenticated && is_User_Authenticated){
     return (
     <Box className="w-screen h-screen bg-slate-100">
       <Box className="w-screen h-16 flex items-center justify-between pl-5 pr-5 bg-[#1976d2]" sx={{ boxShadow: '0 0 15px rgba(0,0,0,0.5)' }}>
         <Typography className='flex items-center' variant='h6' sx={{ color: 'white' }}>
-          <HomeRounded sx={{ fontSize: '25px', marginRight: '10px', color: 'white' }} onDoubleClick={deleteAllStudents} /> 
+          <HomeRounded sx={{ fontSize: '25px', marginRight: '10px', color: 'white' }}/> 
           Dashboard
         </Typography>
         <IconButton onClick={() => setOpenDrawer(true)}>
@@ -181,34 +175,39 @@ const Dashboard = () => {
             <img src='/images/V-Cube-Logo.png' alt='' width='80px' />
           </Box>
         </IconButton>
-        <Tooltip title='Reports' arrow>
-          <IconButton sx={{ position: 'absolute' }} onClick={() => setOpenReport(true)} className='right-[7%] top-3'>
-              <Badge badgeContent={reportLen} color='error' max={99}>
-                <ReportRounded sx={{ fontSize: '28px', color: 'white' }} />
-              </Badge>
-          </IconButton>
-        </Tooltip>
         <Tooltip title='VCube Drive' arrow>
-          <IconButton sx={{ position: 'absolute' }} onClick={() => setOpenDrive(true)} className='right-[10.5%] top-3'>
+          <IconButton sx={{ position: 'absolute' }} onClick={() => setOpenDrive(true)} className='right-[7%] top-3'>
               <CloudRounded sx={{ fontSize: '28px', color: 'white' }} />
           </IconButton>
         </Tooltip>
         <Tooltip title='Student Messages' arrow>
-          <IconButton sx={{ position: 'absolute' }} onClick={() => setStdMessages(true)} className='right-[14%] top-3'>
+          <IconButton sx={{ position: 'absolute' }} onClick={() => setStdMessages(true)} className='right-[10.5%] top-3'>
             <Badge badgeContent={stdMsgLen} color='error' max={99}>
               <ThreePRounded sx={{ fontSize: '28px', color: 'white' }} />
             </Badge>
           </IconButton>
         </Tooltip>
+        <Tooltip title='Reports' arrow>
+          <IconButton sx={{ position: 'absolute' }} onClick={() => setOpenReport(true)} className='right-[14%] top-3'>
+              <Badge badgeContent={reportLen} color='error' max={99}>
+                <ReportRounded sx={{ fontSize: '28px', color: 'white' }} />
+              </Badge>
+          </IconButton>
+        </Tooltip>
+        <Tooltip title='Report an Issue' arrow>
+          <IconButton sx={{ position: 'absolute' }} onClick={() => setReportIssue(true)} className='right-[17%] top-3'>
+                <ReportProblemRounded sx={{ fontSize: '28px', color: 'white' }} />
+          </IconButton>
+        </Tooltip>
         {isUser === 'Super Admin' ? <Tooltip title='Navigate to Placements Dashboard' arrow>
           <IconButton sx={{ position: 'absolute' }} onClick={() => navigate(`/vcube/placements/dashboard/${sessionStorage.getItem('UniqueURL').substring(30,60)}`)} 
-            className='right-[17.5%] top-3'>
+            className='right-[20%] top-3'>
               <FlipCameraAndroidRounded sx={{ fontSize: '28px', color: 'white' }} />
           </IconButton>
         </Tooltip>
           :
        <Tooltip title='Your Notifications' arrow>
-          <IconButton sx={{ position: 'absolute' }} onClick={() => setBatchNotif(true)} className='right-[17.5%] top-3'>
+          <IconButton sx={{ position: 'absolute' }} onClick={() => setBatchNotif(true)} className='right-[20.5%] top-3'>
             <Badge badgeContent={notifLen} color='error' max={99}>
               <NotificationsRounded sx={{ fontSize: '28px', color: 'white' }} />
             </Badge>
@@ -265,7 +264,6 @@ const Dashboard = () => {
           setDialog={setDialog}
           setIsLoading={setIsLoading}
           setImportData={setImportData}
-          setDelete_Assessment={setDelete_Assessment}
         />
         <StudentForm open={stdFormOpen} setOpen={setStdFormOpen} selectedCourse={selectedCourse} selectedBatch={selectedBatch} isUser={'Super Admin'} />
         {settingsOpen && <UserSettings settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} handleShowSnackbar={handleShowSnackbar} />}
@@ -298,6 +296,7 @@ const Dashboard = () => {
           setUploadRecording={setUploadRecording}
           setShowRecording={setShowRecording}
           User={isUser}
+          setDelete_Assessment={setDelete_Assessment}
         />}
 
         {openBatchOption && batchOption && <BatchOptions
@@ -345,6 +344,8 @@ const Dashboard = () => {
           handleShowSnackbar={handleShowSnackbar}
           setIsLoading={setIsLoading}
           fetchBatchAttData={fetchBatchAttData}
+          studentsData={studentsData}
+          select_Batch={selectedBatch}
         />
         <MessageToStudents
           isOpen={sendMsgToStd}
@@ -387,6 +388,10 @@ const Dashboard = () => {
           selectedBatch={selectedBatch}
           handleShowSnackbar={handleShowSnackbar}
           setIsLoading={setIsLoading}
+          editAssignment={editAssignment}
+          editAssignmentData={editAssignmentData}
+          setEditAssignment={setEditAssignment}
+          setEditAssignmentData={setEditAssignmentData}
         />
 
         {isUser !== 'Super Admin' && <AdminNotifications
@@ -437,6 +442,18 @@ const Dashboard = () => {
                 setIsLoading={setIsLoading} 
                 setReportLen={setReportLen}
           />
+
+          <UpdateDeleteAssignment
+                handleShowSnackbar={handleShowSnackbar}
+                setIsLoading={setIsLoading}
+                isOpen={delete_Assessment}
+                setIsOpen={setDelete_Assessment}
+                setOpenAssessment={setOpenAssessment}
+                setEditAssignment={setEditAssignment}
+                setEditAssignmentData={setEditAssignmentData}
+          />
+
+          <ReportDialog isOpen={reportIssue} setIsOpen={setReportIssue} setLoading={setIsLoading} />
 
         <Dialog open={confirmLogout} sx={{ zIndex: '710' }}>
           <DialogTitle>Are you sure you want to logout?</DialogTitle>

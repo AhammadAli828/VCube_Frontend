@@ -2,9 +2,12 @@ import React, { startTransition, useContext, useEffect, useRef, useState } from 
 import { Box, Card, CardMedia, Dialog, DialogContent, DialogTitle, FormControl, FormControlLabel, IconButton, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 import { CloseRounded, ArrowForwardIosRounded, PlayCircleRounded, PlayDisabledRounded, PlayArrowRounded } from '@mui/icons-material';
 import { AssessmentContext } from '../api/Assessment';
+import { StudentsContext } from '../api/students';
+import { DateTime } from '../date-time';
 
-const ClassVedios = ({ isOpen, setIsOpen, JoiningDate, course, batchName, handleShowSnackbar }) => {
+const ClassVedios = ({ isOpen, setIsOpen, JoiningDate, course, batchName, handleShowSnackbar, stdId, name, phone, isUser, setIsLoading }) => {
     const { fetchRecordings } = useContext(AssessmentContext);
+    const { fetchStudentWatchTimeData, postStudentWatchTimeData, patchStudentWatchTimeData } = useContext(StudentsContext);
     const [monthsRange, setMonthRange] = useState([]);
     const [vedioData, setVedioData] = useState(null);
     const [selectedMonth, setSelectedMonth] = useState('');
@@ -48,6 +51,48 @@ const ClassVedios = ({ isOpen, setIsOpen, JoiningDate, course, batchName, handle
         })
     },[selectedMonth])
 
+    const saveWatchTime = async () => {
+        if(isUser === 'Student'){
+            const time = localStorage.getItem('Student_WatchTime');
+            if (time){
+                if (Math.floor(parseInt(time.split('~')[1]) / 60) < 1) {
+                    return;
+                }
+                const getData = await fetchStudentWatchTimeData(stdId);
+                if (!getData || getData.message || getData.response) {
+                    return false;
+                }
+            
+                const existingData = Array.isArray(getData) && getData.find((data) =>
+                    data.Course === course &&
+                    data.BatchName === batchName &&
+                    data.Name === `${name}~${phone}` &&
+                    data.Date === time.split('~')[0]
+                );
+                if (existingData) {
+                    existingData.WatchTime = (parseInt(existingData.WatchTime) || 0) + parseInt(time.split('~')[1]);
+                    const res_1 = await patchStudentWatchTimeData(existingData);
+                    if (res_1) {
+                        localStorage.removeItem('Student_WatchTime');
+                    }
+                } else {
+                    const newData = {
+                        StudentId: stdId,
+                        Name: `${name}~${phone}`,
+                        Course: course,
+                        BatchName: batchName,
+                        Date: time.split('~')[0],
+                        WatchTime: time.split('~')[1],
+                    };
+                    const res_2 = await postStudentWatchTimeData(newData);
+                    if (res_2) {
+                        localStorage.removeItem('Student_WatchTime');
+                    }
+                }
+            }
+        }
+    };
+
     const getMonthYearRange = (joiningDateStr) => {
         const [joiningMonth, joiningYear] = joiningDateStr.split('-');
         const startDate = new Date(`${joiningMonth} 1, ${joiningYear}`);
@@ -74,18 +119,47 @@ const ClassVedios = ({ isOpen, setIsOpen, JoiningDate, course, batchName, handle
         if (vedioplaying){
             setTimeout(()=>{
                 setWatchTime((pre)=> pre +=1 );
+                let time = localStorage.getItem('Student_WatchTime') || '';
+                let currentWatchTime = 0;
+                if (time) {
+                    const parts = time.split('~');
+                    if (parts[1]) {
+                        currentWatchTime = parseInt(parts[1]) || 0;
+                    }
+                }
+                currentWatchTime += 1;
+                localStorage.setItem('Student_WatchTime', `${DateTime().split(' ')[0]}~${currentWatchTime}`);
             },1000);
         } 
       },[watchTime, vedioplaying])
 
-    //   console.log(Math.floor(watchTime / 60), watchTime % 60);
+      useEffect(() => {
+        const handleBeforeUnload = async (event) => {
+            event.preventDefault();
+            await saveWatchTime();
+            event.returnValue = '';
+        };
+    
+        window.addEventListener('beforeunload', handleBeforeUnload);
+    
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [watchTime]);  
 
+    const handleClose = async () => {
+        setIsLoading(true);
+        await saveWatchTime();
+        setIsLoading(false);
+        setIsOpen(false);
+    }
+      
 
   return (
     <Dialog open={isOpen} sx={{zIndex : '700'}} fullScreen>
         <DialogTitle className='flex items-start justify-between h-20' sx={{padding : '0'}}>
             <img src="/images/V-Cube-Logo.png" alt='' width='8%' className='ml-[46%]'/>
-            <IconButton onClick={()=>setIsOpen(false)} sx={{marginRight : '10px'}}><CloseRounded sx={{fontSize : '35px'}}/></IconButton>
+            <IconButton onClick={handleClose} sx={{marginRight : '10px'}}><CloseRounded sx={{fontSize : '35px'}}/></IconButton>
         </DialogTitle>
         <DialogContent className='h-full flex items-center justify-start' sx={{padding : '30px 50px'}}>
         <Box className='w-[40%] h-full flex flex-col items-center justify-start rounded-md'>
@@ -116,9 +190,10 @@ const ClassVedios = ({ isOpen, setIsOpen, JoiningDate, course, batchName, handle
             <Card className='h-[55%] w-[69%] flex items-center justify-center'>
                 {selectedVedio ? <CardMedia
                     component="video"
-                    onPlaying={()=>setVedioPlaying(true)}
+                    onPlaying={()=>{setVedioPlaying(true)}}
                     onPause={()=>setVedioPlaying(false)}
                     onEnded={()=>setVedioPlaying(false)}
+                    onWaiting={()=>setVedioPlaying(false)}
                     controls
                     controlsList='nodownload'
                     src={vedioUrl ? vedioUrl : selectedVedio.Vedio_URL.split(' ')[0]}
@@ -137,7 +212,7 @@ const ClassVedios = ({ isOpen, setIsOpen, JoiningDate, course, batchName, handle
             <Box className='h-28 w-full mt-5 flex items-center justify-start'>
                 {selectedVedio && selectedVedio.Vedio_URL.split(' ').map((url)=>
                     <Card className= 'w-1/5 h-[80%] flex items-center justify-center mr-10' sx={{bgcolor : 'black'}}>
-                        <IconButton onClick={()=>{setVedioUrl(url);setVedioPlaying(url === vedioUrl)}}>
+                        <IconButton onClick={()=>{setVedioUrl(url);setVedioPlaying(vedioplaying && url === vedioUrl)}}>
                             <PlayCircleRounded sx={{fontSize : '50px', color : url === vedioUrl ? '#1976d2' : 'grey'}} />
                         </IconButton>
                     </Card>)}

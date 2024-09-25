@@ -83,7 +83,7 @@ const SentMessages = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, User, 
         </DialogContent>
         <DialogActions>
             <Button variant='outlined' onClick={()=>setDeleteMsg(false)}>Cancel</Button>
-            <Button variant='contained' onClick={()=>{setIsLoading(true);setTimeout(()=>{deleteMessage()},2000);setDeleteMsgData(null);setDeleteMsg(false)}}>Withdraw</Button>
+            <Button variant='contained' onClick={()=>{setIsLoading(true);deleteMessage();setDeleteMsgData(null);setDeleteMsg(false)}}>Withdraw</Button>
         </DialogActions>
     </Dialog>
     </>

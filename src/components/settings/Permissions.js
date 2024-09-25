@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Box, Accordion, AccordionDetails, AccordionSummary, Typography, IconButton, Dialog, DialogTitle, DialogActions, Button } from '@mui/material';
 import { UserDetails } from '../UserDetails';
 import { LoginContext } from '../api/login';
@@ -15,27 +15,30 @@ const Permissions = ({ handleShowSnackbar, setIsLoading }) => {
     const [login, setLogin] = useState(null);
     const [expand, setExpand] = useState(-1);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setIsLoading(true);
         let res;
-        if (isUser === 'Super Admin'){
-            res = await fetchPermissionsData();
+
+        if (isUser === 'Super Admin') {
             const re = await fetchCourse();
-            if(!(re && re.message))setCourseData(re);
+            if (!(re && re.message)) setCourseData(re);
+            res = await fetchPermissionsData();
         } else {
             res = await fetchPermissionsData(UserDetails('Course'));
         }
-        if (res && res.message){
+
+        if (res && res.message) {
             handleShowSnackbar('error', res.message);
-        }else{
+        } else {
             setPermissionData(res);
         }
-        setIsLoading(false);
-    }
 
-    useEffect(()=>{
+        setIsLoading(false);
+    }, [isUser, fetchPermissionsData, fetchCourse, setIsLoading, handleShowSnackbar]);
+
+    useEffect(() => {
         fetchData();
-    },[])
+    }, [fetchData]);
 
     const changeDetails = async () => {
         setIsLoading(true);

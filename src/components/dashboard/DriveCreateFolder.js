@@ -80,7 +80,7 @@ const VerticalLinearStepper = ({ handleShowSnackbar, setIsLoading, driveUser, se
         Course: user.Course,
         Folder: folderName,
         FileName: file.name,
-        DrivePassword : cnt == 0 ? driveUser.Drive : 'None',
+        DrivePassword : cnt === 0 ? driveUser.Drive : 'None',
         File: fileContent,
         Size: (file.size / (1024 * 1024)).toFixed(2),
         Date: dateTime,

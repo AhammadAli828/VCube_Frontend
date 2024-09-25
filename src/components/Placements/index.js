@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, Suspense, lazy } from 'react';
 import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from '@mui/material';
-import { CloseRounded, CloudRounded, FlipCameraAndroidRounded, HomeRounded, NotificationsRounded, ThreePRounded } from '@mui/icons-material';
+import { CloseRounded, CloudRounded, FlipCameraAndroidRounded, HomeRounded, NotificationsRounded, ReportProblemRounded, ThreePRounded } from '@mui/icons-material';
 import { BatchContext } from '../api/batch';
 import { CourseContext } from '../api/Course';
 import { enqueueSnackbar, closeSnackbar } from 'notistack';
@@ -14,6 +14,7 @@ import LoadingSkeletonAlternate from '../LoadingSkeletonAlternate';
 import { UserGoogleContext } from '../api/Google';
 import { UsersAuthContext } from '../api/UsersAuth';
 import Drive from '../dashboard/Drive';
+import ReportDialog from '../ReportDialog';
 
 const OverView = lazy(() => import('./OverView'));
 const SelectOptions = lazy(() => import('./OptionsBar'));
@@ -57,6 +58,7 @@ const PlacementsDashboard = () => {
     const [stdMsgLen, setStdMsgLen] = useState(0);
     const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
     const [openDrive, setOpenDrive] = useState(false);
+    const [reportIssue, setReportIssue] = useState(false);
 
     const handleShowSnackbar = (variant, message) => {
         enqueueSnackbar(message, {
@@ -142,9 +144,14 @@ const PlacementsDashboard = () => {
                             </Badge>
                         </IconButton>
                     </Tooltip>
+                    <Tooltip title='Report an Issue' arrow>
+                        <IconButton sx={{ position: 'absolute' }} onClick={() => setReportIssue(true)} className='right-[14%] top-3'>
+                                <ReportProblemRounded sx={{ fontSize: '28px', color: 'white' }} />
+                        </IconButton>
+                    </Tooltip>
                     {isUser === 'Super Admin' ? <Tooltip title='Navigate to Dashboard' arrow>
                         <IconButton sx={{ position: 'absolute' }} onClick={() => navigate(`/vcube/dashboard/${sessionStorage.getItem('UniqueURL').substring(0,30)}`)} 
-                            className='right-[14%] top-3'>
+                            className='right-[17.5%] top-3'>
                         <Badge badgeContent={stdMsgLen} color='error' max={99}>
                             <FlipCameraAndroidRounded sx={{ fontSize: '28px', color: 'white' }} />
                         </Badge>
@@ -152,7 +159,7 @@ const PlacementsDashboard = () => {
                     </Tooltip> 
                     :
                     <Tooltip title='Your Notifications' arrow>
-                        <IconButton sx={{ position: 'absolute' }} className='right-[14%] top-3'>
+                        <IconButton sx={{ position: 'absolute' }} className='right-[17.5%] top-3'>
                             <Badge badgeContent={notifLen} color='error' max={99} onClick={() => setBatchNotif(true)}>
                                 <NotificationsRounded sx={{ fontSize: '28px', color: 'white' }} />
                             </Badge>
@@ -286,6 +293,8 @@ const PlacementsDashboard = () => {
                     />
                 </Suspense>
             )}
+
+            <ReportDialog isOpen={reportIssue} setIsOpen={setReportIssue} setLoading={setIsLoading} />
 
             {stdMessages && (
                 <Suspense fallback={<LoadingSkeletonAlternate />}>

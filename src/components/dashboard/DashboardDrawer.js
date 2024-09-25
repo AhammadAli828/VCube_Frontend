@@ -15,7 +15,7 @@ const DashboardDrawer = ({
   setOpenBatchOption, setBatchOption, setOpenCourseOption,
   setCourseOption, handleShowSnackbar, setPostJob, setPostedJob, setSendMsgToStd,
   setShowSendMsg, setStudentsFeedback, setMsgToBatch, setConfirmLogout, setUploadRecording,
-  setShowRecording, User
+  setShowRecording, User, setDelete_Assessment, 
 }) => {
 
   const actions = {
@@ -26,6 +26,10 @@ const DashboardDrawer = ({
     'Upload Assignment': () => {
       if (!selectedCourse || !selectedBatch || selectedBatch === 'All') handleShowSnackbar('error', `Please Choose a ${user === 'Super Admin' ? 'Preferred Course & ' : ''}Batch before Posting an Assignment.`);
       else setOpenAssessment(true);
+    },
+    'Update / Delete Assignment': () => {
+      if (!selectedCourse || !selectedBatch || selectedBatch === 'All') handleShowSnackbar('error', `Please Choose a ${user === 'Super Admin' ? 'Preferred Course & ' : ''}Batch before Posting an Assignment.`);
+      else setDelete_Assessment(true);
     },
     'Add Batch': () => {
       setBatchOption('Add Batch');
@@ -132,7 +136,7 @@ const DashboardDrawer = ({
     ? [
       'Add Student', 'Add Batch', 'Delete Batch', 'Add Course', 'Delete Course',
       'Change Course Tutors', 'Upload Class Recordings', 'Show Uploaded Recordings',
-      'Upload Assignment', 'Job Opportunity Announcement', 
+      'Upload Assignment', 'Update / Delete Assignment', 'Job Opportunity Announcement', 
       'View Posted Opportunities', 'Send Message to Batch', 
       'Send Message to Students', 'Show Sent Messages',
       'Students Feedback', 'Export Student Data'
@@ -140,7 +144,7 @@ const DashboardDrawer = ({
     : [
       'Add Student', 'Add Batch', 'Delete Batch',
       'Upload Class Recordings', 'Show Uploaded Recordings',
-      'Upload Assignment', 'Job Opportunity Announcement', 
+      'Upload Assignment', 'Update / Delete Assignment', 'Job Opportunity Announcement', 
       'View Posted Opportunities', 'Send Message to Students', 
       'Show Sent Messages', 'Students Feedback',
       'Export Student Data'

@@ -7,7 +7,7 @@ const PlacementsInfo = ({ student_Details }) => {
   return (
     <Box className='w-full h-full pt-5'>
       <Typography variant='h4' className='w-full flex items-center justify-center'><WorkRounded sx={{fontSize : '30px',marginRight : '10px'}} />Student Placements Requirements</Typography>
-      <Box className="w-full h-[75%] mt-28 pl-10 pr-10">
+      <Box className="w-full h-[70%] mt-20 pl-10 pr-10">
         <Typography variant='h5' className='flex items-center'><strong>Skills : </strong><Typography sx={{marginLeft : '20px', fontSize : '18px'}}>{student_Details.Skills && student_Details.Skills.map(value=>value + ", ")}</Typography></Typography>
         <Box className='w-full grid grid-cols-2 gap-8 mt-10'>
           <Typography variant='h6' className='flex items-center'><strong>Employeement : </strong><Typography sx={{marginLeft : '10px', fontSize : '18px'}}>{student_Details.Employement}</Typography></Typography>

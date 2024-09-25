@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback, lazy, Suspense, startTransition, memo } from 'react';
 import { Box, Card, IconButton, Tooltip, Badge, SpeedDial, SpeedDialIcon, SpeedDialAction, Link, Dialog, DialogContent, DialogContentText, DialogTitle, DialogActions, Button, Typography } from '@mui/material';
-import { MenuRounded, Notifications, Edit, Close, SimCardDownloadRounded, LogoutRounded, CloseRounded, MailRounded, SmsRounded, ContentPasteRounded, ThumbUpAltRounded, CodeRounded, SmartDisplayRounded } from '@mui/icons-material';
+import { MenuRounded, Notifications, Edit, Close, SimCardDownloadRounded, LogoutRounded, CloseRounded, MailRounded, SmsRounded, ContentPasteRounded, ThumbUpAltRounded, CodeRounded, SmartDisplayRounded, ReportProblemRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { StudentsContext } from '../api/students';
 import { BatchAttendanceContext } from '../api/batch-attendance';
@@ -13,6 +13,7 @@ import { useAuth } from '../api/AuthContext';
 import ExpiredPage from '../ExpiredPage';
 import { UsersAuthContext } from '../api/UsersAuth';
 import { StudentsAuthContext } from '../api/StudentsAuth';
+import ReportDialog from '../ReportDialog';
 
 const CustomTabs = lazy(()=> import('./Tabs'));
 const PersonalInfo = lazy(() => import('./PersonalInfo'));
@@ -36,7 +37,7 @@ const ClassVedios = lazy(()=> import('./ClassVedios'));
 const MemoizedIconButton = memo(IconButton);
 
 const StudentInfo = () => {
-  const { fetchStudentsDataById, getStudentAttendanceById } = useContext(StudentsContext);
+  const { fetchStudentsDataById, getStudentAttendanceById, fetchStudentWatchTimeData, postStudentWatchTimeData, patchStudentWatchTimeData } = useContext(StudentsContext);
   const { fetchBatchAttendanceDataByCourse } = useContext(BatchAttendanceContext);
   const { checkUserAuth } = useContext(UsersAuthContext);
   const { checkStdAuth } = useContext(StudentsAuthContext);
@@ -80,6 +81,7 @@ const StudentInfo = () => {
   const [editDetails, setEditDetails] = useState(false);
   const [is_User_Authenticated, setIs_User_Authenticated] = useState(false);
   const [isStdAuthenticated, setIsStdAuthenticated] = useState(false);
+  const [reportIssue, setReportIssue] = useState(false);
 
   const Check_Auth = async () => {
     await UseUserAuthentication(checkUserAuth, setIs_User_Authenticated);
@@ -179,13 +181,65 @@ const StudentInfo = () => {
     });    
   };
 
+
+  const saveWatchTime = async () => {
+    if(isUser === 'Student' && dialogState.classVedio){
+      const time = localStorage.getItem('Student_WatchTime');
+      if(time){
+        if (Math.floor(parseInt(time.split('~')[1]) / 60) < 1) {
+            return;
+        }
+        const getData = await fetchStudentWatchTimeData(stdId);
+
+        if (!getData || getData.message || getData.response) {
+            return false;
+        }
+
+        const existingData = Array.isArray(getData) && getData.find((data) =>
+            data.Course === studentData.personal.Course &&
+            data.BatchName === studentData.personal.BatchName &&
+            data.Name === `${studentData.personal.Name}~${studentData.personal.Phone}` &&
+            data.Date === time.split('~')[0]
+        );
+
+        if (existingData) {
+            existingData.WatchTime = (parseInt(existingData.WatchTime) || 0) + parseInt(time.split('~')[1]);
+            const res_1 = await patchStudentWatchTimeData(existingData);
+            if (res_1) {
+                localStorage.removeItem('Student_WatchTime');
+            }
+        } else {
+            const newData = {
+                StudentId: stdId,
+                Name: `${studentData.personal.Name}~${studentData.personal.Phone}`,
+                Course: studentData.personal.Course,
+                BatchName: studentData.personal.BatchName,
+                Date: time.split('~')[0],
+                WatchTime: time.split('~')[1],
+            };
+            const res_2 = await postStudentWatchTimeData(newData);
+            if (res_2) {
+                localStorage.removeItem('Student_WatchTime');
+            }
+        }
+      }
+    }
+  };
+
+  useEffect(()=>{
+    if(isUser === 'Student' && localStorage.getItem('Student_WatchTime') && !dialogState.classVedio){
+      saveWatchTime();
+    }
+  },[])
+
   const actions = [
     (isUser !== 'Student' || (isUser === 'Student' && stdPermission.Edit === 'Access')) && isUser.split(' ')[0] !== 'Placements' &&
     { icon: <Edit />, name: 'Edit Details', onClick: () => {setDialogState(prev => ({ ...prev, editStdDetails: true }));setEditDetails(true)} },
     { icon: <Link href={studentData.personal.Resume} download={`VCube-${studentData.personal.Name}-${studentData.personal.Course}-${studentData.personal.BatchName}.pdf`} ><SimCardDownloadRounded /></Link>, name: 'Download Resume' },
     isUser.split(' ')[0] !== 'Placements'  && { icon: <ContentPasteRounded />, name: 'Assessments', onClick: () => setDialogState(prev => ({ ...prev, assessmentDialog: true })) },
     isUser === 'Student' && { icon: <CodeRounded />, name: 'Code Editor', onClick: () => setDialogState(pre => ({ ...pre, practice_CodeEditor: true })) },
-    isUser === 'Student' && { icon: <SmartDisplayRounded />, name: 'Class Recordings', onClick: ()=> setDialogState(pre => ({ ...pre, classVedio: true })) },
+    // isUser === 'Student' && 
+    { icon: <SmartDisplayRounded />, name: 'Class Recordings', onClick: ()=> setDialogState(pre => ({ ...pre, classVedio: true })) },
     { icon: <SmsRounded />, name: 'Messages you sent', onClick: () => setDialogState(prev => ({ ...prev, sentMessageForm: true })) },
     { icon: <ThumbUpAltRounded />, name: 'Feedback Form', onClick: () => setDialogState(prev => ({ ...prev, feedbackForm: true })) },
     { icon: <LogoutRounded />, name: isUser === 'Student' ? 'Logout' : 'Close Details', onClick: isUser === 'Student' ? () => setDialogState(prev => ({ ...prev, isLogout: true })) : handleClose }
@@ -220,6 +274,10 @@ const StudentInfo = () => {
                 selectedYear={selectedYear}
                 setSelectedYear={setSelectedYear}
                 JoiningDate={studentData.joiningDate}
+                handleShowSnackbar={handleShowSnackbar}
+                stdId={stdId}
+                name={studentData.personal.Name}
+                phone={studentData.personal.Phone}
               />
             ) : tabsValue === 2 ? (
               <Performance
@@ -243,6 +301,9 @@ const StudentInfo = () => {
                 </MemoizedIconButton>
                 <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: '5%' }} onClick={() => setDialogState(prev => ({ ...prev, stdMailNotifications: true }))}>
                   <Tooltip title='Placements Notifications'><Badge badgeContent={mailNotif} color='error' max={99}><MailRounded className='text-gray-500 cursor-pointer' sx={{ fontSize: '30px' }} /></Badge></Tooltip>
+                </MemoizedIconButton>
+                <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: '9%' }} onClick={()=>setReportIssue(true)} >
+                  <Tooltip title='Report an Issue'><ReportProblemRounded className='text-gray-500 cursor-pointer' sx={{ fontSize: '30px' }} /></Tooltip>
                 </MemoizedIconButton>
               </>
             )}
@@ -384,8 +445,14 @@ const StudentInfo = () => {
                 course={studentData.personal.Course}
                 batchName={studentData.personal.BatchName}
                 handleShowSnackbar={handleShowSnackbar}
+                stdId={stdId}
+                name={studentData.personal.Name}
+                phone={studentData.personal.Phone}
+                isUser={isUser}
+                setIsLoading={setIsLoading}
           />}
-          
+
+          <ReportDialog isOpen={reportIssue} setIsOpen={setReportIssue} setLoading={setIsLoading} />
           
           {dialogState.isLogout && <Dialog open={dialogState.isLogout} onClose={() => setDialogState(prev => ({ ...prev, isLogout: false }))}>
             <DialogTitle>Are you sure you want to Logout?</DialogTitle>

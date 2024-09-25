@@ -36,7 +36,7 @@ const UploadRecordings = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, ha
         const optFields = (vedioDetail.Vedio_URL2 ? vedioDetail.Vedio_URL2.startsWith('https://') : true) &&
                         (vedioDetail.Vedio_URL3 ? vedioDetail.Vedio_URL3.startsWith('https://') : true);
 
-        if(fields , optFields){
+        if(fields && optFields){
             const data = {
                 Course : selectedCourse,
                 BatchName : selectedBatch,
@@ -82,11 +82,11 @@ const UploadRecordings = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, ha
         <DialogTitle variant='h5'>Upload Class Recordings</DialogTitle>
         <DialogContent className='w-full h-[25rem] flex flex-col items-center justify-evenly' >
             {!checkURL ? <>
-            <TextField type='text' label='Vedio Title' className='w-full'
+            <TextField type='text' label='Video Title' className='w-full'
                 value={vedioDetail.Title} onChange={(e)=> setVedioDetail(pre => ({...pre, Title: e.target.value}) )} />
             <TextField type='date' className='w-full' 
                 value={vedioDetail.Date} onChange={(e)=> setVedioDetail(pre => ({...pre, Date: e.target.value}) )}/>
-            <TextField type='url' label='Vedio URL1' className='w-full' 
+            <TextField type='url' label='Video URL1' className='w-full' 
                 value={vedioDetail.Vedio_URL1} 
                 onChange={(e)=> setVedioDetail(pre => ({...pre, Vedio_URL1:  e.target.value }) )}
                 InputProps={{ endAdornment: <InputAdornment position='end'>
@@ -103,10 +103,10 @@ const UploadRecordings = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, ha
                             } else {
                                 handleShowSnackbar('error', 'Enter Valid Video URL to view video.');
                             }
-                    }}>Check Vedio</Typography>
+                    }}>Check Video</Typography>
                     </InputAdornment> 
                 }}/>
-            <TextField type='url' label='Vedio URL2 (Optional)' className='w-full' 
+            <TextField type='url' label='Video URL2 (Optional)' className='w-full' 
                 value={vedioDetail.Vedio_URL2} 
                 onChange={(e)=> setVedioDetail(pre => ({...pre, Vedio_URL2:  e.target.value }) )}
                 InputProps={{ endAdornment: <InputAdornment position='end'>
@@ -123,7 +123,7 @@ const UploadRecordings = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, ha
                             } else {
                                 handleShowSnackbar('error', 'Enter Valid Video URL to view video.');
                             }
-                    }}>Check Vedio</Typography>
+                    }}>Check Video</Typography>
                     </InputAdornment>
                 }}/>
             <TextField type='url' label='Vedio URL3 (Optional)' className='w-full'
@@ -144,7 +144,7 @@ const UploadRecordings = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, ha
                                 handleShowSnackbar('error', 'Enter Valid Video URL to view video.');
                             }
                         }}
-                        >Check Vedio</Typography>
+                        >Check Video</Typography>
                     </InputAdornment>
                 }}/>
             </> :

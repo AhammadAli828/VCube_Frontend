@@ -187,10 +187,10 @@ export const ForgotCredentailsDialog = ({ isOpen, isClose, setIsLoading, handleS
             label="Password"
             type="password"
             fullWidth
-            error={(consubmit && password.length == 0)}
+            error={(consubmit && password.length === 0)}
             onChange={(e)=>setPassword(e.target.value)}
             variant="standard"
-            helperText={(consubmit && password.length == 0) ? "Enter Password" : ""}
+            helperText={(consubmit && password.length === 0) ? "Enter Password" : ""}
             value={password}
             />
             </Box>
@@ -212,10 +212,10 @@ export const ForgotCredentailsDialog = ({ isOpen, isClose, setIsLoading, handleS
             label="Confirm Password"
             type={showPassword ? 'text' : 'password'}
             fullWidth
-            error={((consubmit && conPassword.length == 0) || password !== conPassword)}
+            error={((consubmit && conPassword.length === 0) || password !== conPassword)}
             onChange={(e)=>setConPassword(e.target.value)}
             variant="standard"
-            helperText={(consubmit && (conPassword.length == 0)) ? "Enter Password" : (password !== conPassword) ? "Password doesn't match" : ""}
+            helperText={(consubmit && (conPassword.length === 0)) ? "Enter Password" : (password !== conPassword) ? "Password doesn't match" : ""}
             value={conPassword}
             InputProps={{
               endAdornment: (
@@ -272,10 +272,10 @@ export const ForgotCredentailsDialog = ({ isOpen, isClose, setIsLoading, handleS
             label="Username"
             type="text"
             fullWidth
-            error={(submit && username.length == 0)}
+            error={(submit && username.length === 0)}
             onChange={(e)=>setUsername(e.target.value)}
             variant="standard"
-            helperText={(submit && email.length == 0) ? "Invalid Username" : ""}
+            helperText={(submit && email.length === 0) ? "Invalid Username" : ""}
             value={username}
           /></Box>}
           <Box className="flex justify-center items-start w-full h-20">
@@ -295,9 +295,9 @@ export const ForgotCredentailsDialog = ({ isOpen, isClose, setIsLoading, handleS
             label="Email Address"
             type="email"
             fullWidth
-            error={(submit && email.length == 0)}
+            error={(submit && email.length === 0)}
             variant="standard"
-            helperText={(submit && email.length == 0) ? "Email Address" : ""}
+            helperText={(submit && email.length === 0) ? "Email Address" : ""}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           /></Box>
