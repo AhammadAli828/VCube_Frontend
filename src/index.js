@@ -19,10 +19,12 @@ import { UsersAuthProvider } from './components/api/UsersAuth';
 import { StudentsAuthProvider } from './components/api/StudentsAuth';
 import { WindowResize } from './components/WindowResize';
 import ErrorBoundary from './components/api/ErrorBoundary';
+import OfflineProvider from './components/api/Offline';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
+    <OfflineProvider>
     <SendMailProvider>
       <ErrorBoundary>
         <Suspense>
@@ -58,6 +60,7 @@ root.render(
         </Suspense>
       </ErrorBoundary>
     </SendMailProvider>
+    </OfflineProvider>
   </React.StrictMode>
 );
 

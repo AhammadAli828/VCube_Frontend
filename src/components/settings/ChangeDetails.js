@@ -8,11 +8,11 @@ import { UsersAuthContext } from '../api/UsersAuth';
 import { UserGoogleContext } from '../api/Google';
 import { useAuth } from '../api/AuthContext';
 
-const ChangeDetails = ({ user, handleShowSnackbar, setIsLoading, image }) => {
+const ChangeDetails = ({ user, handleShowSnackbar, handleClose, setIsLoading, image }) => {
     const { userUpdate, checkPassword } = useContext(LoginContext);
     const { logout } = useAuth();
     const { removeUserLoginData } = useContext(UsersAuthContext);
-    const { userGoogleLogout } = useContext(UserGoogleContext);
+    const { userGoogleLogout, userGoogleLogin } = useContext(UserGoogleContext);
     const [username, setUsername] = useState(null);
     const [phone, setPhone] = useState(null);
     const [email, setEmail] = useState(null);
@@ -66,7 +66,16 @@ const ChangeDetails = ({ user, handleShowSnackbar, setIsLoading, image }) => {
             }
         }else if(res === 'Valid'){
             setIsLoading(true);
-            updateDetails();
+            if(user.Email === email){
+                updateDetails();
+            }else{
+                const google = await userGoogleLogin(email);
+                if(google.status === 'success'){
+                    updateDetails();
+                }else{
+                    handleShowSnackbar('error',google.status);
+                }
+            }
         }
     }
 
@@ -80,9 +89,9 @@ const ChangeDetails = ({ user, handleShowSnackbar, setIsLoading, image }) => {
         if(password)data['Password'] = password;
         const res = await userUpdate(data);
         setIsLoading(false);
-        setAccPassword(null);
         if (res === true){
             handleShowSnackbar('success','Details has been updated successfully.');
+            handleClose();
         }else{
             handleShowSnackbar('error','Something went wrong. Please try again later.');
         }

@@ -22,7 +22,7 @@ export const UserGoogleProvider = ({ children }) => {
         } else {
             userGoogleLogout();
             await deleteUser(user);
-            return { status: 'failed', message: 'Email does not match' };
+            return { status: 'failed', message: 'Email Verification Failed' };
         }
     } catch (error) {
         userGoogleLogout();

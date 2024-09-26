@@ -108,7 +108,7 @@ const UserSettings = ({ settingsOpen, setSettingsOpen, handleShowSnackbar }) => 
                             <Tab label="Users" disabled={!(isUser === "Placements Admin" || user.User === "Super Admin" || user.User === "Admin")} sx={{fontWeight : (tabValue === 4) ? 'bold' : 'normal', color : (tabValue === 4) ? '#1976d2' : ''}} onClick={()=>setTabValue(4)} />
                         </Tabs>
                     </Box>
-                    {(tabValue === 0) ? (<ChangeDetails user={user} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} image={image} />) : 
+                    {(tabValue === 0) ? (<ChangeDetails user={user} handleClose={handleClose} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} image={image} />) : 
                     (tabValue === 1) ? (<AddNewUser handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} setTabValue={setTabValue} />) : 
                     (tabValue === 2) ? (<PerformanceInsights xLabels={xLabels}  setIsLoading={setIsLoading} />) : 
                     (tabValue === 3) ? (<Permissions handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} />) :
