@@ -100,9 +100,11 @@ const StudentForm = ({ isStudentLogin, setStudentLogin, setIsLoading, handleShow
       const data = { Username: state.stdEmail, Course: state.course };
       const res = await studentAuthenticate(data);
       if (res === 'Valid'){
+        setIsLoading(true);
         const uniqueURL = sessionStorage.getItem('UniqueURL');
         await stdLogin();
         navigate(`/vcube/student-info/${uniqueURL.substring(60,90)}`);
+        setIsLoading(false);
       } else {
         handleShowSnackbar('error', res.message || 'Invalid Details.');
         removeStudentLoginData();

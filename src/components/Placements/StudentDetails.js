@@ -4,6 +4,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { StudentsContext } from '../api/students';
+import { CustomNoRowsOverlay } from '../DatagridOverlay';
 
 const StudentDetails = ({ selectedCourse, selectedBatch, setIsLoading, handleShowSnackbar, refresh, isUser }) => {
     const { fetchStudentsData } = useContext(StudentsContext);
@@ -94,6 +95,7 @@ const StudentDetails = ({ selectedCourse, selectedBatch, setIsLoading, handleSho
     <DataGrid
       rows={rows}
       columns={columns}
+      slots={{ noRowsOverlay: CustomNoRowsOverlay }}
       sx={{
         cursor : 'pointer',
         '& .MuiDataGrid-columnHeader': {

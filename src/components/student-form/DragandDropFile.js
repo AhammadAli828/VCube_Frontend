@@ -213,7 +213,7 @@ const DragDropUpload = ({ onDrop, fileData, fileName, fileError, setUploadManual
     </Box>
 
 
-    <Dialog open={(isUser === 'Super Admin' || isUser === 'Admin') && deleteStdData} onClose={()=>{setDeleteStdData(false);setConfirmDelete(false);setDeleteValue(null)}} maxWidth='lg'>
+    <Dialog open={(isUser === 'Super Admin' || isUser === 'Admin') && deleteStdData} onClose={()=>{setDeleteStdData(false);setConfirmDelete(false);setDeleteValue(null)}} maxWidth='lg' sx={{zIndex : '910'}}>
       <img src='/images/V-Cube-Logo.png' width='14%' className='ml-[43%]' alt='' />
       <IconButton sx={{position : 'absolute'}} className='top-1 right-1' onClick={()=>{setDeleteStdData(false);setConfirmDelete(false);setDeleteValue(null)}}>
         <CloseRounded fontSize='large' />
@@ -242,7 +242,7 @@ const DragDropUpload = ({ onDrop, fileData, fileName, fileError, setUploadManual
             className='border-[1px] border-red-600 rounded-md w-[95%] h-10 outline-red-600' />
           <Button variant='contained' color='error' sx={{width : '95%'}} 
             startIcon={(deleteValue && deleteValue === `Delete ${selectedBatch} Student's Data`) && <DeleteForever/>}
-            onClick={()=>{setConfirmDelete(false);(isUser === 'Super Admin' || isUser === 'Admin') && deleteStudentData()}}
+            onClick={()=>{setDeleteStdData(false);setConfirmDelete(false);(isUser === 'Super Admin' || isUser === 'Admin') && deleteStudentData()}}
             disabled={!deleteValue || (deleteValue && deleteValue !== `Delete ${selectedBatch} Student's Data`)}>
               <Typography sx={{color : !deleteValue || (deleteValue && deleteValue !== `Delete ${selectedBatch} Student's Data`) ? '#e4959c' : ''}}
                >Delete {selectedBatch} Student's Data

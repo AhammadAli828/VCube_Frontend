@@ -102,11 +102,13 @@ const AdminForm = ({ isStudentLogin, setStudentLogin, setIsLoading, setForgotPas
                     const uniqueURL = sessionStorage.getItem('UniqueURL');
                     setUserError(false);
                     setPasswordError(false);
+                    setIsLoading(true);
                     await userAuthChk();
                     login();
                     const user = UserDetails('All');
                     navigate(user.User.split(' ')[0] === 'Placements' ? `/vcube/placements/dashboard/${uniqueURL.substring(30,60)}` : `/vcube/dashboard/${uniqueURL.substring(0,30)}`);
                     handleShowSnackbar('success',`Login Successful. Welcome back ${user.Username}`);
+                    setIsLoading(false);
                 }
             }
         } catch (error) {
