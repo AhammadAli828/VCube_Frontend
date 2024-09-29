@@ -52,12 +52,12 @@ const StudentForm = ({ open, setOpen, selectedCourse, selectedBatch, isUser }) =
       
 
       const handleShowSnackbar = useCallback((variant, message) => {
-        enqueueSnackbar(message, {
-          variant,
+        enqueueSnackbar(message, { 
+          variant: variant, 
           anchorOrigin: { vertical: 'top', horizontal: 'right' },
           action: (key) => (
-            <IconButton><CloseRounded onClick={() => closeSnackbar(key)} color="inherit" /></IconButton>
-          )
+            <IconButton onClick={() => closeSnackbar(key)}><CloseRounded color="inherit" /></IconButton>
+          ),
         });
       }, [enqueueSnackbar, closeSnackbar]);
 

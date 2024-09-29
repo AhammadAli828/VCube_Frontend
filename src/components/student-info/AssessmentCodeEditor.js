@@ -118,13 +118,14 @@ const AssessmentCodeEditor = ({ isOpen, setIsOpen, stdId, configs, handleShowSna
                                 hideQuestion={hideQuestion} setHideQuestion={setHideQuestion} full_Screen={full_Screen} handleFullScreen={handleFullScreen} />
             <CodeEditor setResults={results}
                         test_Cases={solveAssessmentData && JSON.parse(solveAssessmentData.Test_Cases)} 
-                        stdId={stdId} configs={configs} handleShowSnackbar={handleShowSnackbar}
-                        fetchStdData={fetchStdData} setResultPopUp={setResultPopUp} hideQuestion={hideQuestion}
+                        stdId={stdId} handleShowSnackbar={handleShowSnackbar}
+                        setResultPopUp={setResultPopUp} hideQuestion={hideQuestion}
                         isSql={solveAssessmentData && JSON.parse(solveAssessmentData.Question).SQL === 'Yes'}
                         full_Screen={full_Screen} setTabValue={setTabValue} questionId={solveAssessmentData && solveAssessmentData.id}
                         name={name} course={course} batchName={batchName} isUser={isUser} />
         </DialogContent>
     </Dialog>
+
     <Dialog open={popUp}>
       <DialogTitle variant='h6'>Please use fullscreen mode to complete your assignment.</DialogTitle>
       <DialogContent>

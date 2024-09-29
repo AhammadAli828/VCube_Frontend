@@ -1,5 +1,5 @@
 import React, { startTransition, useContext, useEffect, useRef, useState } from 'react';
-import { Avatar, Box, Button, Card, Dialog, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, Tab, Tabs, Tooltip, Typography } from '@mui/material';
+import { Avatar, Box, Button, Card, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, Tab, Tabs, Tooltip, Typography } from '@mui/material';
 import { ArrowForwardRounded, CloseRounded, DescriptionRounded } from '@mui/icons-material';
 import { AssessmentContext } from '../api/Assessment';
 import { StudentsContext } from '../api/students';
@@ -18,13 +18,14 @@ export const getMonthsDifference = (startDate) => {
     return totalMonths + 1;
 }
 
-const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnackbar, setIsLoading, setSolveAssesments, setSolveAssessmentData, stdId, JoiningDate, isUser }) => {
+const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnackbar, setIsLoading, setSolveAssesments, setSolveAssessmentData, stdId, JoiningDate, isUser, configs }) => {
     const { fetchAssessmentQuestions } = useContext(AssessmentContext);
     const { getStudentAttendanceById } = useContext(StudentsContext);
     const [assessmentData, setAssessmentData]= useState(null);
     const [attData, setAttData] = useState(null);
     const [attCount, setAttCount] = useState(0);
     const [selectedMonth, setSelectedMonth] = useState(null);
+    const [configAlert, setConfigAlert] = useState(false);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -33,7 +34,7 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
         if (res && res.message){
             handleShowSnackbar('error',res.message);
         }else if(res){
-            const data = res && res.filter(data=>data.BatchName === batchName && JSON.parse(data.Question).Month === selectedMonth);
+            const data = res && res.filter(data=>data.Course === course && JSON.parse(data.Question).Month === selectedMonth);
             setAssessmentData(data);
             fetchAttData(data);
         }
@@ -73,18 +74,44 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
     }
 
     const getColor = () => {
-        const cnt = getPercentage();
-        return cnt < 20 ? '#fee2e2' : cnt > 20 && cnt < 35 ? '#fef2f2' : 
-        cnt > 35 && cnt < 50 ? '#fff7ed' : cnt > 50 && cnt < 70 ? '#ffedd5' : 
-        cnt > 70 && cnt < 85 ? '#f0fdf4' : '#dcfce7';
-    }
+        const cnt = getPercentage();       
+        if (cnt < 20) {
+            return '#fee2e2';
+        } else if (cnt < 35) {
+            return '#fef2f2';
+        } else if (cnt < 50) {
+            return '#fff7ed';
+        } else if (cnt < 70) {
+            return '#ffedd5';
+        } else if (cnt < 85) {
+            return '#f0fdf4';
+        } else {
+            return '#dcfce7';
+        }
+    };
+    
+
+    console.log(getColor());
 
     const months = []
     for(let i = 1; i <= getMonthsDifference(JoiningDate); i++){
         months.push(i);
     }
 
+    const handleSolveAssignment = (data) => {
+        if(JSON.parse(data.Question).SQL === 'Yes'){
+            if(configs === '' || !configs){
+                setConfigAlert(true);
+                return;
+            }
+        }
+        setSolveAssessmentData(data);
+        setSolveAssesments(true);
+        setIsOpen(false);
+    }
+
   return (
+    <>
     <Dialog open={isOpen} sx={{zIndex : '700'}} fullScreen>
         <Typography variant='h5' className='absolute top-5 left-3'>
             Your Assessments <DescriptionRounded sx={{marginLeft : '10px'}} />
@@ -114,13 +141,30 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
                 </Typography>
                 <Box className='w-64 flex items-center justify-between'>
                     <Typography className={`${data.Level === 'Easy' ? 'bg-green-100' : data.Level === 'Medium' ? 'bg-orange-100' : 'bg-red-100'} ${data.Level === 'Easy' ? 'text-green-600' : data.Level === 'Medium' ? 'text-orange-600' : 'text-red-600'} w-[4.50rem] text-center rounded-md`}>{data.Level}</Typography>
-                    <Button endIcon={!checkSolved(data.id) && <ArrowForwardRounded/>} variant='contained' onClick={()=>{setSolveAssessmentData(data);setSolveAssesments(true);setIsOpen(false)}}
+                    <Button endIcon={!checkSolved(data.id) && <ArrowForwardRounded/>} variant='contained' onClick={()=>handleSolveAssignment(data)}
                     sx={{background : checkSolved(data.id) ? '#dcfce7' : '', color : checkSolved(data.id) ? '#16a34a' : 'white', ':hover' : {background : checkSolved(data.id) && '#dcfce7'}}}>{checkSolved(data.id) ? 'SOLVED' : 'SOLVE'}</Button>
                 </Box>
             </Card>
             </Tooltip>)}
         </DialogContent>
     </Dialog>
+
+    <Dialog open={configAlert} sx={{zIndex : '710'}}>
+        <img src='/images/V-Cube-Logo.png' width='14%' className='ml-[43%]' />
+        <DialogTitle variant='h5'>Database Configurations Not Found.</DialogTitle>
+        <DialogContent>
+            <DialogContentText>
+            You need to configure your database settings to complete the assignment. <br/>
+            • Go to your Dashboard. <br/>
+            • Please open your code editor from the menu. <br/>
+            • Select SQL and update the configurations.
+            </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+            <Button variant='contained' onClick={()=>setConfigAlert(false)} >OK</Button>
+        </DialogActions>
+    </Dialog>
+    </>
   )
 }
 

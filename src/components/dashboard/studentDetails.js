@@ -7,9 +7,10 @@ import { StudentsContext } from '../api/students';
 import { CancelRounded, CheckCircleRounded, Visibility } from '@mui/icons-material';
 import StudentAttendanceForm from './StudentAttendanceForm';
 import { DateTime } from '../date-time';
+import { CustomNoRowsOverlay } from '../DatagridOverlay';
 
 
-const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selectedBatch, setIsLoading, handleShowSnackbar, importData, setImportData, takeStdAtt, setTakeStdAtt, openStdAttDialog, setOpenStdAttDialog }) => {
+const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selectedBatch, setIsLoading, handleShowSnackbar, importData, setImportData, takeStdAtt, setTakeStdAtt, openStdAttDialog, setOpenStdAttDialog, refresh }) => {
   const { fetchStudentsData, getStudentAttendanceByCourse } = useContext(StudentsContext);
   const [selectedId, setSelectedId] = useState([]);
   const [studentAttData, setStudentAttData] = useState([]);
@@ -29,7 +30,7 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
         handleShowSnackbar('error', stdData.message);
         setStudentsData([]);
       } else {
-        setStudentsData(stdData);
+        setStudentsData(Array.isArray(stdData) ? stdData.filter(data => data.BatchName === selectedBatch || selectedBatch === 'All') : []);
         setStudentAttData(attData);
       }
     } catch (error) {
@@ -43,9 +44,10 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
   
   useEffect(() => {
     if (selectedCourse && selectedBatch) {
+      console.log('REFRESHED');
       fetchStdData();
     }
-  }, [setIsLoading, selectedCourse, selectedBatch]);
+  }, [setIsLoading, selectedCourse, selectedBatch, refresh]);
 
   const stdAttendance = () => {
       if(!selectedId || (Array.isArray(selectedId) && selectedId.length === 0)){
@@ -140,7 +142,6 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
     }
   ], [handleRowClick]);
 
-
 const rows = useMemo(() => {
   return studentsData.reduce((acc, data, index) => {
     if (data.BatchName === selectedBatch || selectedBatch === 'All') {
@@ -218,13 +219,15 @@ const rows = useMemo(() => {
   },[importData])
 
   return (
-    <Box className="w-[96%] max-h-[61%] h-[61%] ml-[2%] bg-white">
+    <Box className="relative w-[96%] max-h-[61%] h-[61%] ml-[2%] bg-white">
+      {rows.length > 0 && <img src='/images/V-Cube-Logo.png' alt='' width='50%' className='absolute top-0 left-[25%] h-full object-scale-down opacity-20' />}
       <DataGrid
         rows={rows}
         columns={columns}
         sx={{
           cursor : 'pointer',
         }}
+        slots={{ noRowsOverlay: CustomNoRowsOverlay }}
         initialState={{
           pagination: {
             paginationModel: { page: 0, pageSize: 100 },

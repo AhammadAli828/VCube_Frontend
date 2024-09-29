@@ -5,7 +5,7 @@ import { csrfToken, userTknDetails } from './TknDetails';
 import axios from 'axios';
 import { DateTime } from '../date-time';
 import { PlaySound } from '../StatusTone';
-import { generateRandomNumber, generateUniqueCode, UserDetails } from '../UserDetails';
+import { generateUniqueCode, UserDetails } from '../UserDetails';
 
 export const UsersAuthContext = createContext();
 

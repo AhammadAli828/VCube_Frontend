@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Autocomplete, Box, Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
-import { CloseRounded } from '@mui/icons-material';
+import { AddRounded, CloseRounded, RemoveRounded } from '@mui/icons-material';
 import { AssessmentContext } from '../api/Assessment';
 
 const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, handleShowSnackbar, setIsLoading,     editAssignment, editAssignmentData, setEditAssignment, setEditAssignmentData }) => {
@@ -10,12 +10,22 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
     const [question, setQuestion] = useState(null);
     const [isSql, setIsSql] = useState(null);
     const [selectedMonth, setSelectedMonth] = useState(null);
+    const [assignmentLength, setAssignmentLength] = useState(5);
     const [testCases, setTestCases] = useState(
-        Array.from({ length: 10 }, () => ({ inputs: [], expected: [] }))
+        Array.from({ length: assignmentLength }, () => ({ inputs: [], expected: [] }))
     );
     const [examples, setExamples] = useState(
         Array.from({ length: 2 }, () => ({ input: [], output: [], explanation: [] }))
     );
+
+    useEffect(() => {
+        setTestCases((prevTestCases) => {
+            const newTestCases = Array.from({ length: assignmentLength }, (_, index) => {
+                return prevTestCases[index] || { inputs: [], expected: [] };
+            });
+            return newTestCases;
+        });
+    }, [assignmentLength]);
 
     useEffect(()=>{
         if(editAssignment && editAssignmentData){
@@ -239,6 +249,10 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
                     </Grid>
                 ))}
             </Grid>
+        <Box className='w-full flex items-center justify-end mt-5'>
+            <Button startIcon={<RemoveRounded/>} variant='outlined' sx={{marginRight : '15px'}} onClick={()=> assignmentLength > 5 ? setAssignmentLength((pre)=>pre -= 1) : handleShowSnackbar('warning','You must maintain at least 5 test cases; reduction below this limit is not allowed.')}>Remove Test Case</Button>
+            <Button startIcon={<AddRounded/>} variant='outlined' onClick={()=>setAssignmentLength((pre)=>pre += 1)}>Add Test Case</Button>
+        </Box>
         <Button variant='contained' sx={{width : '50%', margin : '3% 0 0 25%', height : '40px'}}
             onClick={handleSubmit}>Submit</Button>
         </DialogContent>

@@ -175,7 +175,7 @@ const StudentForm = ({ isStudentLogin, setStudentLogin, setIsLoading, handleShow
                 error={state.courseError}
                 sx={{ width: '100%' }}
                 className="w-full"
-                onChange={(e) => setField('course', e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))}
+                onChange={(e) => setField('course', e.target.value.toUpperCase())}
                 value={state.course}
                 label="Enter Your Course Name"
                 helperText={state.courseError ? "Invalid Course" : ""}

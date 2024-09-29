@@ -46,6 +46,8 @@ const PracticeCodeEditor = ({ isOpen, setIsOpen, handleShowSnackbar, configs, fe
     const [loading1, setLoading1] = useState(false);
     const [full_Screen, setFull_Screen] = useState(false);
     const [close, setClose] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [timer, setTimer] = useState(10);
 
     useEffect(() => {
         startTransition(()=>{
@@ -114,6 +116,23 @@ const PracticeCodeEditor = ({ isOpen, setIsOpen, handleShowSnackbar, configs, fe
             setFileExtension(fileExtension);
         })
     },[language])
+
+    useEffect(() => {
+        let timerId;
+      
+        if (submitted) {
+          timerId = setTimeout(() => {
+            setTimer((prev) => prev - 1);
+          }, 1000);              
+        }
+    
+        if (timer === 0) {
+          setSubmitted(false);
+          setTimer(10);
+        }
+      
+        return () => clearTimeout(timerId);
+      }, [timer, submitted]);
 
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
@@ -193,6 +212,7 @@ const PracticeCodeEditor = ({ isOpen, setIsOpen, handleShowSnackbar, configs, fe
             }
         }
         set_Tab_Value(1);
+        setSubmitted(true);
     };
 
     useEffect(() => {
@@ -284,7 +304,7 @@ const PracticeCodeEditor = ({ isOpen, setIsOpen, handleShowSnackbar, configs, fe
                 <Box className='w-full h-14 flex items-center justify-between'>
                     <Button variant='outlined' onClick={()=>setDBConfig(true)}>{configs === '' ? 'Add' : 'Change'} Database Configurations</Button>
                     <Box className='relative w-[20%]'>
-                    <Button disabled={loading1} onClick={()=>{setLoading1(true);setTimeout(()=>{run_Code()},2000)}} variant='outlined' sx={{width : '100%'}}>Run Code</Button>
+                    <Button disabled={loading1} onClick={()=>{if(!submitted){setLoading1(true);setTimeout(()=>{run_Code()},2000)}}} variant='outlined' sx={{width : '100%'}}>Run Code {submitted ? timer < 10  ? `in 0${timer}` : `in ${timer}` : null}</Button>
                     {loading1 && (
                     <CircularProgress
                     size={24}
@@ -307,7 +327,7 @@ const PracticeCodeEditor = ({ isOpen, setIsOpen, handleShowSnackbar, configs, fe
                 </Tabs>
                 <Box className='relative w-[20%]'>
                     <Button sx={{width : '100%'}} disabled={loading1} variant='outlined' 
-                        onClick={()=>{output.current = '';setLoading1(true);setTimeout(()=>{run_Code()},2000)}}>Run Code</Button>
+                        onClick={()=>{output.current = '';if(!submitted){setLoading1(true);setTimeout(()=>{run_Code()},2000)}}}>Run Code {submitted ? timer < 10  ? `in 0${timer}` : `in ${timer}` : null}</Button>
                     {loading1 && (
                     <CircularProgress
                     size={24}

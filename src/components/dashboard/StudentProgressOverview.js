@@ -17,10 +17,11 @@ export const getMonthsDifference = (startDate) => {
   if (end.getDate() < start.getDate()) {
       totalMonths--;
   }
+  console.log(totalMonths)
   return totalMonths + 1;
 }
 
-const StudentProgressOverview = ({ batchAttData, fetchBatchAttData, setBatchAttendanceType, setOpenBatchAttendanceDialog, selectedCourse, handleShowSnackbar, selectedBatch, studentsData, openStdAttDialog, batchData }) => {
+const StudentProgressOverview = ({ batchAttData, fetchBatchAttData, setBatchAttendanceType, setOpenBatchAttendanceDialog, selectedCourse, handleShowSnackbar, selectedBatch, studentsData, openStdAttDialog, batchData, refresh }) => {
   const { getStudentAttendanceByCourse, fetchStudentsData } = useContext(StudentsContext);
   const { fetchAssessmentQuestions } = useContext(AssessmentContext);
   const [stdCount, setStdCount] = useState(0);
@@ -40,9 +41,9 @@ const StudentProgressOverview = ({ batchAttData, fetchBatchAttData, setBatchAtte
     if(!(assignmentData && assignmentData.message)){
       const filteredData = Array.isArray(batchData) && batchData.find(data => data.BatchName === selectedBatch);
       const data = Array.isArray(assignmentData) && assignmentData.filter((data)=> data.Course === selectedCourse && 
-                  (selectedBatch === 'All' || (filteredData ? parseInt(JSON.parse(data.Question).Month.split(' ')[1]) >= getMonthsDifference(filteredData.Date) : null)));
+                  (selectedBatch === 'All' || (filteredData ? parseInt(JSON.parse(data.Question).Month.split(' ')[1]) >= getMonthsDifference(filteredData.Date) && parseInt(JSON.parse(data.Question).Month.split(' ')[1]) <= getMonthsDifference(filteredData.Date) : null)));
       data && setAssignmentCount(data.length);
-    }  
+    }
     if(!(stdData && stdData.message)){
       const stds = Array.isArray(stdData) && stdData.filter((data)=>data.Course === selectedCourse && (data.BatchName === selectedBatch || selectedBatch === 'All'))
       stds && setStdCount(stds.length);
@@ -59,15 +60,15 @@ const StudentProgressOverview = ({ batchAttData, fetchBatchAttData, setBatchAtte
 
   useEffect(()=>{startTransition(()=>{
       selectedCourse && selectedBatch && fetchStdData();
-  })},[selectedCourse, selectedBatch, openStdAttDialog])
+  })},[selectedCourse, selectedBatch, openStdAttDialog, refresh])
 
   useEffect(()=>{startTransition(()=>{
     selectedCourse && selectedBatch && fetchStdData();
-  })},[openStdAttDialog])
+  })},[openStdAttDialog, refresh])
 
   useEffect(()=>{startTransition(()=>{
     selectedCourse && fetchBatchAttData();
-  })},[selectedBatch])
+  })},[selectedBatch, refresh])
 
   const getData = (type) => {
     let typeCount = 0;

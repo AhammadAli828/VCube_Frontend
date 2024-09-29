@@ -149,7 +149,7 @@ const CourseOptions = ({ openCourseOption, setOpenCourseOption, courseOption, se
                 {courseOption === 'Add Course' && <Box className='flex items-start h-20 justify-between w-[80%] ml-[10%]'>
                     <ClassRounded className='mt-6' sx={{fontSize : '30px'}}/>
                     <InputField label="Enter Course Name" sx={{width : '90%'}} 
-                    value={course} onChange={(e)=>setCourse(e.target.value)} error={isSubmit && !course}
+                    value={course} onChange={(e)=>setCourse(e.target.value.toUpperCase())} error={isSubmit && !course}
                     helperText={isSubmit && !course ? "Enter Course Name" : ""} />
                 </Box>}
 

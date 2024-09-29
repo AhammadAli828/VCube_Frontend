@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, Suspense, lazy } from 'react';
 import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from '@mui/material';
-import { CloseRounded, CloudRounded, FlipCameraAndroidRounded, HomeRounded, NotificationsRounded, ReportProblemRounded, ThreePRounded } from '@mui/icons-material';
+import { CloseRounded, CloudRounded, FlipCameraAndroidRounded, HomeRounded, MenuRounded, NotificationsRounded, ReportProblemRounded, ThreePRounded } from '@mui/icons-material';
 import { BatchContext } from '../api/batch';
 import { CourseContext } from '../api/Course';
 import { enqueueSnackbar, closeSnackbar } from 'notistack';
@@ -59,6 +59,8 @@ const PlacementsDashboard = () => {
     const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
     const [openDrive, setOpenDrive] = useState(false);
     const [reportIssue, setReportIssue] = useState(false);
+    const [isAuthChecked, setIsAuthChecked] = useState(false);
+    const [refresh, setRefresh] = useState(false);
 
     const handleShowSnackbar = (variant, message) => {
         enqueueSnackbar(message, {
@@ -74,6 +76,7 @@ const PlacementsDashboard = () => {
 
     const Check_Auth = async () => {
         await UseUserAuthentication(checkUserAuth, setIsUserAuthenticated);
+        !isAuthChecked && setIsAuthChecked(true);
     }
 
     const fetchData = async () => {
@@ -119,6 +122,15 @@ const PlacementsDashboard = () => {
         }, 500);
     };
 
+    const refreshData = async () => {
+        setRefresh(!refresh);
+        setIsLoading(true);
+        await Check_Auth();
+        await fetchData();
+        setIsLoading(false);
+    }
+
+    if(isAuthChecked){
     if (isUserAuthenticated && isPlacementsAuthenticated){
         return (
             <Box className='w-screen h-screen bg-slate-100'>
@@ -127,31 +139,34 @@ const PlacementsDashboard = () => {
                         <HomeRounded sx={{ fontSize: '25px', marginRight: '10px', color: 'white' }} />
                         Placement's Dashboard
                     </Typography>
+                    <Box className='w-1/5 h-full flex flex-row-reverse items-center justify-between'>
+                    <Tooltip title='Menu' arrow>
                     <IconButton onClick={() => setOpenDrawer(true)}>
-                        <Box className='bg-white rounded-full h-[3rem] w-[3rem] flex items-center justify-center' sx={{ boxShadow: '0 0 3px rgba(0,0,0,0.5)' }}>
-                            <img src='/images/V-Cube-Logo.png' alt='' width='80px' />
+                        <Box className='rounded-full flex items-center justify-center'>
+                        <MenuRounded fontSize='large' sx={{color : 'white'}} />
                         </Box>
                     </IconButton>
+                    </Tooltip>
                     <Tooltip title='VCube Drive' arrow>
-                    <IconButton sx={{ position: 'absolute' }} onClick={() => setOpenDrive(true)} className='right-[7%] top-3'>
+                    <IconButton onClick={() => setOpenDrive(true)}>
                         <CloudRounded sx={{ fontSize: '28px', color: 'white' }} />
                     </IconButton>
                     </Tooltip>
                     <Tooltip title='Student Messages' arrow>
-                        <IconButton sx={{ position: 'absolute' }} onClick={() => setStdMessages(true)} className='right-[10.5%] top-3'>
+                        <IconButton onClick={() => setStdMessages(true)}>
                             <Badge badgeContent={stdMsgLen} color='error' max={99}>
                                 <ThreePRounded sx={{ fontSize: '28px', color: 'white' }} />
                             </Badge>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title='Report an Issue' arrow>
-                        <IconButton sx={{ position: 'absolute' }} onClick={() => setReportIssue(true)} className='right-[14%] top-3'>
+                        <IconButton onClick={() => setReportIssue(true)}>
                                 <ReportProblemRounded sx={{ fontSize: '28px', color: 'white' }} />
                         </IconButton>
                     </Tooltip>
                     {isUser === 'Super Admin' ? <Tooltip title='Navigate to Dashboard' arrow>
-                        <IconButton sx={{ position: 'absolute' }} onClick={() => navigate(`/vcube/dashboard/${sessionStorage.getItem('UniqueURL').substring(0,30)}`)} 
-                            className='right-[17.5%] top-3'>
+                        <IconButton onClick={() => navigate(`/vcube/dashboard/${sessionStorage.getItem('UniqueURL').substring(0,30)}`)} 
+                            >
                         <Badge badgeContent={stdMsgLen} color='error' max={99}>
                             <FlipCameraAndroidRounded sx={{ fontSize: '28px', color: 'white' }} />
                         </Badge>
@@ -159,18 +174,19 @@ const PlacementsDashboard = () => {
                     </Tooltip> 
                     :
                     <Tooltip title='Your Notifications' arrow>
-                        <IconButton sx={{ position: 'absolute' }} className='right-[17.5%] top-3'>
+                        <IconButton>
                             <Badge badgeContent={notifLen} color='error' max={99} onClick={() => setBatchNotif(true)}>
                                 <NotificationsRounded sx={{ fontSize: '28px', color: 'white' }} />
                             </Badge>
                         </IconButton>
-                    </Tooltip>}
+                    </Tooltip>}               
+                    </Box>
                 </Box>
 
                 <Suspense fallback={<LoadingSkeletonAlternate />}>
-                    <OverView selectedBatch={selectedBatch} selectedCourse={selectedCourse} handleShowSnackbar={handleShowSnackbar} />
-                    <SelectOptions courseData={courseData} batchData={batchData} selectedBatch={selectedBatch} setSelectedBatch={setSelectedBatch} selectedCourse={selectedCourse} setSelectedCourse={setSelectedCourse} handleShowSnackbar={handleShowSnackbar} setShortLoading={setShortLoading} />
-                    <StudentDetails selectedCourse={selectedCourse} selectedBatch={selectedBatch} setIsLoading={setIsLoading} handleShowSnackbar={handleShowSnackbar} />
+                    <OverView selectedBatch={selectedBatch} selectedCourse={selectedCourse} handleShowSnackbar={handleShowSnackbar} refresh={refresh} />
+                    <SelectOptions courseData={courseData} batchData={batchData} selectedBatch={selectedBatch} setSelectedBatch={setSelectedBatch} selectedCourse={selectedCourse} setSelectedCourse={setSelectedCourse} handleShowSnackbar={handleShowSnackbar} setShortLoading={setShortLoading} refreshData={refreshData} />
+                    <StudentDetails selectedCourse={selectedCourse} selectedBatch={selectedBatch} setIsLoading={setIsLoading} handleShowSnackbar={handleShowSnackbar} refresh={refresh} isUser={isUser} />
                 </Suspense>
 
                 {settingsOpen && (
@@ -321,13 +337,16 @@ const PlacementsDashboard = () => {
             </Dialog>
         </Box>
     );
-  } else if (isUserAuthenticated || isPlacementsAuthenticated){
-    return (
-        <ExpiredPage />
-    );
-  }else{
-    navigate(`/vcube/error/${sessionStorage.getItem('UniqueURL').substring(30,70)}`);
-  }
+    } else if (isUserAuthenticated || isPlacementsAuthenticated){
+        return (
+            <ExpiredPage />
+        );
+    }else{
+        navigate(`/vcube/error/${sessionStorage.getItem('UniqueURL').substring(30,70)}`);
+    }
+    }else{
+        <LoadingSkeletonAlternate/>
+    }
 };
 
 export default PlacementsDashboard;

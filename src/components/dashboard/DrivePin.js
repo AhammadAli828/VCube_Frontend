@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, IconButton, TextField, Typography } from '@mui/material';
 import { CloseRounded, SecurityRounded } from '@mui/icons-material';
 import SetDrivePin from './SetDrivePin';
@@ -135,7 +135,7 @@ const DrivePin = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setIsVa
 
   return (
     <Dialog open={isOpen} sx={{zIndex : '700'}} onClose={()=>{handleClear();setIsOpen(false)}}>
-        <img src='/images/V-Cube-Logo.png' width='15%' className='ml-[42.5%]' />
+        <img src='/images/V-Cube-Logo.png' alt='' width='15%' className='ml-[42.5%]' />
         <IconButton sx={{position : 'absolute'}} className='top-1 right-1' onClick={()=>{handleClear();setIsOpen(false)}}>
             <CloseRounded fontSize='large' />
         </IconButton>
@@ -181,7 +181,7 @@ const DrivePin = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setIsVa
             <Button variant='contained' onClick={()=>{forgot ? resetPin() : validateUser()}}>Submit</Button>
         </DialogActions> */}
         <DialogContent className='flex flex-col items-center justify-evenly'>
-            <img src='/images/developer-mode.gif' className='w-[80%] h-[80%]' />
+            <img src='/images/developer-mode.gif' alt='' className='w-[80%] h-[80%]' />
             <Typography variant='h6' color='grey' >Our drive is currently in development. We'll return shortly!</Typography>
         </DialogContent>
     </Dialog>

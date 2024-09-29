@@ -19,7 +19,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     },
 }));
 
-const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar, fetchStdData, setResultPopUp, hideQuestion, isSql, full_Screen, setTabValue, questionId, name, course, batchName, isUser }) => {
+const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResultPopUp, hideQuestion, isSql, full_Screen, setTabValue, questionId, name, course, batchName, isUser }) => {
     const { runCode, executeCode } = useContext(ExecuteCodeContext);
     const { getStudentAttendanceById, postStudentAttendance } = useContext(StudentsContext);
     const code = useRef({
@@ -48,8 +48,9 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
     const [loading1, setLoading1] = useState(false);
     const [loading2, setLoading2] = useState(false);
     const [hideConsole, setHideConsole] = useState(false);
-    const [stdConfigs, setStdConfigs] = useState(false);
     const cardRef = useRef(null);
+    const [submitted, setSubmitted] = useState(false);
+    const [timer, setTimer] = useState(10);
 
     const fetchData = async () => {
         const res = await getStudentAttendanceById(stdId);
@@ -87,13 +88,22 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
         })
     }, [queries]);
 
-    useEffect(()=>{
-        startTransition(()=>{
-            if(language === 'sql'){
-                (configs === '' || !configs) && setStdConfigs(true);
-            }
-        })
-    },[language])
+    useEffect(() => {
+        let timerId;
+      
+        if (submitted) {
+          timerId = setTimeout(() => {
+            setTimer((prev) => prev - 1);
+          }, 1000);              
+        }
+    
+        if (timer === 0) {
+          setSubmitted(false);
+          setTimer(10);
+        }
+      
+        return () => clearTimeout(timerId);
+      }, [timer, submitted]);
 
     const removeSQLComments = (sql) => {
         let cleanedSql = sql.replace(/^\s*--.*$/gm, '');
@@ -103,13 +113,6 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
     }
 
     const run_Code = async () => {
-        if(language === 'sql'){
-            if(configs === '' || !configs){
-                setLoading1(false);
-                setStdConfigs(true);
-                return;
-            }
-        }
         const data = {
             id : stdId,
             Code : language === 'sql' ? removeSQLComments(code.current[language]) : code.current[language],
@@ -137,17 +140,10 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
             }
         }
         set_Tab_Value(1);
+        setSubmitted(true);
     };
 
     const execute_Code = async () => {
-        if(language === 'sql'){
-            if(configs === '' || !configs){
-                setLoading2(false);
-                setStdConfigs(true);
-                return;
-            }
-        }
-
         const data = {
             id : stdId,
             Code : language === 'sql' ? [removeSQLComments(code.current[language])] : code.current[language],
@@ -170,6 +166,7 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
         }
         setResultPopUp(true);
         setTabValue(1);
+        setSubmitted(true);
     };
 
     const SubmitAssignment = async () => {
@@ -339,13 +336,11 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
                 <Tab label='Output' sx={{fontWeight : 'bold', fontFamily : 'unset'}} onClick={()=>set_Tab_Value(1)}/>
             </Tabs>
             :
-            <Box className='w-full flex items-center justify-between'>
-                <Tabs value={tab_Value}>
-                    <Tab label='Output' sx={{fontWeight : 'bold', fontFamily : 'unset'}} onClick={()=>set_Tab_Value(0)}/>
-                    <Tab label='Results' sx={{fontWeight : 'bold', fontFamily : 'unset'}} onClick={()=>set_Tab_Value(1)}/>
-                </Tabs>
-                <Button variant='outlined' onClick={()=>setStdConfigs(true)}>{configs === '' ? 'Add' : 'Change'} Database Configurations</Button>
-            </Box>}
+            <Tabs value={tab_Value}>
+                <Tab label='Output' sx={{fontWeight : 'bold', fontFamily : 'unset'}} onClick={()=>set_Tab_Value(0)}/>
+                <Tab label='Results' sx={{fontWeight : 'bold', fontFamily : 'unset'}} onClick={()=>set_Tab_Value(1)}/>
+            </Tabs>
+            }
         </Box>
 
         {tab_Value === 0 ? (language !== 'sql' ? <TextField rows={10} value={input} onChange={(e)=>setInput(e.target.value)}
@@ -425,10 +420,10 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
             <Button startIcon={hideConsole ? <ExpandMoreRounded/> : <ExpandLessRounded />} onClick={()=>setHideConsole(!hideConsole)}>
                 {hideConsole ? 'Show' : 'Hide'} Console
             </Button>
-            <Box className='w-[40%] flex items-center justify-between'>
+            <Box className='w-[50%] flex items-center justify-between'>
                 <Box className='relative w-[50%]'>
                     <Button variant='outlined' disabled={loading1} sx={{width : '90%', marginRight : '0'}}
-                    onClick={()=>{setLoading1(true);output.current = '';setSqlResults('');setTimeout(()=>{run_Code()},2000)}}>Run Code</Button>
+                    onClick={()=>{if(!submitted){setLoading1(true);output.current = '';setSqlResults('');setTimeout(()=>{run_Code()},2000)}}}>Run Code {submitted ? timer < 10  ? `in 0${timer}` : `in ${timer}` : null}</Button>
                     {loading1 && (
                     <CircularProgress
                     size={24}
@@ -445,7 +440,7 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
                 </Box>
                 <Box className='relative w-[50%]'>
                     <Button variant='contained' disabled={loading2} sx={{width : '90%', margin : '0 0 0 15px'}}
-                    onClick={()=>{setLoading2(true);setTimeout(()=>{execute_Code()},2000)}}>Submit</Button>
+                    onClick={()=>{if(!submitted){setLoading2(true);setTimeout(()=>{execute_Code()},2000)}}}>Submit {submitted ? timer < 10  ? `in 0${timer}` : `in ${timer}` : null}</Button>
                     {loading2 && (
                     <CircularProgress
                     size={24}
@@ -461,7 +456,6 @@ const CodeEditor = ({ setResults, test_Cases, stdId, configs, handleShowSnackbar
                 </Box>
             </Box>
         </Box>
-        <StudentConfigForm isOpen={stdConfigs} setIsOpen={setStdConfigs} handleShowSnackbar={handleShowSnackbar} fetchStdData={fetchStdData} />
     </Box>
   )
 }

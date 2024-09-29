@@ -6,6 +6,7 @@ import { CheckBox, ClassRounded, GroupAddRounded, GroupRemoveRounded, GroupRound
 import { BatchContext } from '../api/batch';
 import { StudentsContext } from '../api/students';
 import { LoginContext } from '../api/login';
+import { DateTime } from '../date-time';
 
 const BatchOptions = ({ courseData, openBatchOption, setOpenBatchOption, batchOption, setBatchOption, handleShowSnackbar, setIsLoading, fetch_Data, selectedCourse }) => {
     const { fetchBatchData, postBatchData, deleteBatchData, deleteBatchRecords } = useContext(BatchContext);
@@ -53,7 +54,8 @@ const BatchOptions = ({ courseData, openBatchOption, setOpenBatchOption, batchOp
             }else{
                 const data = {
                     BatchName : batch,
-                    Course : (userCourse === 'All') ? course : userCourse
+                    Course : (userCourse === 'All') ? course : userCourse,
+                    Date : DateTime().split(' ')[0]
                 }
                 const result = await postBatchData(data);
                 if (result === true){

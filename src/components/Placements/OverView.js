@@ -4,7 +4,7 @@ import ProgressBar from '../dashboard/ProgressBar';
 import { BadgeRounded, GroupsRounded, ScheduleRounded, SchoolRounded, WorkRounded } from '@mui/icons-material';
 import { StudentsContext } from '../api/students';
 
-const OverView = ({ selectedCourse, selectedBatch, handleShowSnackbar }) => {
+const OverView = ({ selectedCourse, selectedBatch, handleShowSnackbar, refresh }) => {
   const { fetchStudentsData } = useContext(StudentsContext);
   const [studentsData, setStudentsData] = useState([]);
   const [totalStd, setTotalStd] = useState(0);
@@ -26,7 +26,7 @@ const OverView = ({ selectedCourse, selectedBatch, handleShowSnackbar }) => {
 
   useEffect(()=>{
       if(selectedCourse && selectedBatch)fetchStdData();
-  },[selectedCourse, selectedBatch])
+  },[selectedCourse, selectedBatch, refresh])
 
   const getYearGapCnt = () => {
     const data = Array.isArray(studentsData) && studentsData.filter(data=> (typeof data.Educational_Info !== 'object') &&
@@ -48,37 +48,37 @@ const OverView = ({ selectedCourse, selectedBatch, handleShowSnackbar }) => {
         Title : 'Pursuing',
         Title_Count : Array.isArray(studentsData) && studentsData.
                       filter(data=> (typeof data.Educational_Info === 'object') ? 0 : 
-                      data.Educational_Info && data.Educational_Info.PG_Specialization ? 
-                      JSON.parse(data.Educational_Info).PG_Passed_Year === 'Currently Pursuing' : 
-                      JSON.parse(data.Educational_Info).Degree_Passed_Year === 'Currently Pursuing').length || 0,
+                      data.Educational_Info && JSON.parse(data.Educational_Info).PG_Specialization ? 
+                      JSON.parse(data.Educational_Info).PG_Passed_Year === 'Currently Pursuing' || JSON.parse(data.Placement_Info).Experience === 'Pursuing Studies' : 
+                      JSON.parse(data.Educational_Info).Degree_Passed_Year === 'Currently Pursuing'  || JSON.parse(data.Placement_Info).Experience === 'Pursuing Studies').length || 0,
         L_G1 : '#ef6559',
         L_G2 : '#f44334',
         Percentage : (()=>{
           const len = Array.isArray(studentsData) && studentsData.
-                      filter(data=> (typeof data.Educational_Info === 'object') ? 0 : 
-                      data.Educational_Info && data.Educational_Info.PG_Specialization ? 
-                      JSON.parse(data.Educational_Info).PG_Passed_Year === 'Currently Pursuing' : 
-                      JSON.parse(data.Educational_Info).Degree_Passed_Year === 'Currently Pursuing').length || 0;
+              filter(data=> (typeof data.Educational_Info === 'object') ? 0 : 
+              data.Educational_Info && JSON.parse(data.Educational_Info).PG_Specialization ? 
+              JSON.parse(data.Educational_Info).PG_Passed_Year === 'Currently Pursuing' || JSON.parse(data.Placement_Info).Experience === 'Pursuing Studies' : 
+              JSON.parse(data.Educational_Info).Degree_Passed_Year === 'Currently Pursuing'  || JSON.parse(data.Placement_Info).Experience === 'Pursuing Studies').length || 0;
           return len === 0 ? 0 : (len / (Array.isArray(studentsData) && studentsData.length)) * 100 || 0;
         })(),
       },{
         Icon : <BadgeRounded sx={{fontSize : '30px', color : '#fff'}} />,
         Title : 'Freshers',
-        Title_Count : Array.isArray(studentsData) && studentsData.filter(data=>JSON.parse(data.Personal_Info).Experience === 'Fresher').length || 0,
+        Title_Count : Array.isArray(studentsData) && studentsData.filter(data=>JSON.parse(data.Placement_Info).Experience === 'Fresher').length || 0,
         L_G1 : '#4099ee',
         L_G2 : '#227be9',
         Percentage : (()=>{
-          const len = Array.isArray(studentsData) && studentsData.filter(data=>JSON.parse(data.Personal_Info).Experience === 'Fresher').length || 0;
+          const len = Array.isArray(studentsData) && studentsData.filter(data=>JSON.parse(data.Placement_Info).Experience === 'Fresher').length || 0;
           return len === 0 ? 0 : (len / (Array.isArray(studentsData) && studentsData.length)) * 100 || 0;
         })()
       },{
         Icon : <WorkRounded sx={{fontSize : '30px', color : '#fff'}} />,
         Title : 'Experienced',
-        Title_Count : Array.isArray(studentsData) && studentsData.filter(data=>JSON.parse(data.Personal_Info).Experience !== 'Fresher').length || 0,
+        Title_Count : Array.isArray(studentsData) && studentsData.filter(data=>JSON.parse(data.Placement_Info).Experience !== 'Fresher' && JSON.parse(data.Placement_Info).Experience !== 'Pursuing Studies').length || 0,
         L_G1 : '#61b665',
         L_G2 : '#4ca650', 
         Percentage : (()=>{
-          const len = Array.isArray(studentsData) && studentsData.filter(data=>JSON.parse(data.Personal_Info).Experience !== 'Fresher').length || 0;
+          const len = Array.isArray(studentsData) && studentsData.filter(data=>JSON.parse(data.Placement_Info).Experience !== 'Fresher' && JSON.parse(data.Placement_Info).Experience !== 'Pursuing Studies').length || 0;
           return len === 0 ? 0 : (len / (Array.isArray(studentsData) && studentsData.length)) * 100 || 0;
         })()
       },{

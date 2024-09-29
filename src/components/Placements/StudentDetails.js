@@ -5,7 +5,7 @@ import { Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { StudentsContext } from '../api/students';
 
-const StudentDetails = ({ selectedCourse, selectedBatch, setIsLoading, handleShowSnackbar }) => {
+const StudentDetails = ({ selectedCourse, selectedBatch, setIsLoading, handleShowSnackbar, refresh, isUser }) => {
     const { fetchStudentsData } = useContext(StudentsContext);
     const [studentsData, setStudentsData] = useState([]);
     const navigate = useNavigate();
@@ -17,13 +17,13 @@ const StudentDetails = ({ selectedCourse, selectedBatch, setIsLoading, handleSho
             const std_Data = Array.isArray(stdData) && stdData.length > 0 && stdData.filter(data=>(
                typeof data.Personal_Info !== 'object' && typeof data.Educational_Info !== 'object' && data.Placement_Info !== 'object'
             ))
-          setStudentsData(std_Data);
+          setStudentsData(Array.isArray(std_Data) ? std_Data.filter(data => data.BatchName === selectedBatch || selectedBatch === 'All') : []);
         }
       };
     
       useEffect(()=>{
           fetchStdData();
-      },[selectedCourse])
+      },[selectedCourse, refresh])
 
     const columns = [
         { field: 'id', headerName: 'ID', width: 50, headerClassName: 'text-lg', },
@@ -84,11 +84,13 @@ const StudentDetails = ({ selectedCourse, selectedBatch, setIsLoading, handleSho
         setIsLoading(true);
         const uniqueURL = sessionStorage.getItem('UniqueURL');
         sessionStorage.setItem('StudentDetails_ID',JSON.stringify(studentsData[id - 1].id));
+        if(isUser === 'Super Admin')sessionStorage.setItem('Navigate','Placements');
         setTimeout(()=>{navigate(`/vcube/student-info/${uniqueURL.substring(60,90)}`)},1000);
       };
 
   return (
-    <Box className="w-[96%] max-h-[60%] h-[60%] ml-[2%] bg-white">
+    <Box className="relative w-[96%] max-h-[60%] h-[60%] ml-[2%] bg-white">
+    {rows.length > 0 && <img src='/images/V-Cube-Logo.png' alt='' width='50%' className='absolute top-0 left-[25%] h-full object-scale-down opacity-20' />}
     <DataGrid
       rows={rows}
       columns={columns}

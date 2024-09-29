@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowForward, ExpandMore, School } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Typography, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, FormHelperText } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Typography, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, FormHelperText, Dialog, DialogContent, DialogContentText, DialogTitle, DialogActions } from '@mui/material';
 import NumberInput from '../noSpinnerField';
 import InputField from '../InputField';
 
-const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, educationData, setEducationData }) => {
+const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, educationData, setEducationData, handleShowSnackbar, editDetails }) => {
     const [name10th, setName10th] = useState(null);
     const [cGPA10th, setCGPA10th] = useState(null);
     const [yearPass10, setYearPass10] = useState(null);
@@ -28,6 +28,7 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
     const [get12th, setGet12th] = useState('Inter');
     const [expanded, setExpanded] = useState(null);
     const [onSubmit, setOnSubmit] = useState(false);
+    const [confirmLeapYear, setConfirmLeapYear] = useState(false);
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 20 }, (_, index) => currentYear - index);
@@ -98,8 +99,17 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
         setOnSubmit(true);
         if(!checkFields())return;
         saveData();
-        handleNext();
+        checkYearGap() ? handleNext() : setConfirmLeapYear(true);
     };
+
+    const checkYearGap = () => {
+        if(parseInt(interStartYear) - parseInt(yearPass10) !== 0)return false;
+        if(parseInt(degreeStartYear) - parseInt(interPassYear) !== 0)return false;
+        if(highDegree){
+            if(parseInt(pGStartYear) - parseInt(degreePassYear) !== 0)return false
+        };
+        return true;
+    }
 
     const checkFields = () => {
         return (
@@ -194,11 +204,14 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
                         '& .MuiInputLabel-root': {
                         fontSize: '20px',
                         },}}>
-                    {years.map((year) => (
-                    <MenuItem key={year} value={year}>
-                        {year}
-                    </MenuItem>
-                    ))}
+                    {years.map((year) => {
+                        if(parseInt(year) >= parseInt(yearPass10))
+                        return(
+                        <MenuItem key={year} value={year}>
+                            {year}
+                        </MenuItem>
+                        )
+                    })}
                 </Select>
                 {(onSubmit && !interStartYear) && <FormHelperText sx={{color : '#d32f2f', marginLeft : '0'}}>Select Start Year</FormHelperText>}
                 </FormControl>
@@ -218,11 +231,14 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
                         '& .MuiInputLabel-root': {
                         fontSize: '20px',
                         },}}>
-                    {years.map((year) => (
-                    <MenuItem key={year} value={year}>
-                        {year}
-                    </MenuItem>
-                    ))}
+                    {years.map((year) => {
+                        if(parseInt(year) > parseInt(interStartYear))
+                        return(
+                        <MenuItem key={year} value={year}>
+                            {year}
+                        </MenuItem>
+                        )
+                    })}
                 </Select>
                 {(onSubmit && !interPassYear) && <FormHelperText sx={{color : '#d32f2f',marginLeft : '0'}}>Select Year of Passing</FormHelperText>}
                 </FormControl>
@@ -260,11 +276,14 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
                         '& .MuiInputLabel-root': {
                         fontSize: '20px',
                         },}}>
-                    {years.map((year) => (
-                    <MenuItem key={year} value={year}>
-                        {year}
-                    </MenuItem>
-                    ))}
+                    {years.map((year) => {
+                        if(parseInt(year) >= parseInt(interPassYear))
+                        return(
+                        <MenuItem key={year} value={year}>
+                            {year}
+                        </MenuItem>
+                        )
+                    })}
                 </Select>
                 {(onSubmit && !degreeStartYear) && <FormHelperText sx={{marginLeft : '0', color : '#d32f2f'}}>Select Start Year</FormHelperText>}
                 </FormControl>
@@ -287,11 +306,14 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
                     <MenuItem value={'Currently Pursuing'}>
                         Currently Pursuing
                     </MenuItem>
-                    {years.map((year) => (
-                    <MenuItem key={year} value={year}>
-                        {year}
-                    </MenuItem>
-                    ))}
+                    {years.map((year) => {
+                        if(parseInt(year) > parseInt(degreeStartYear))
+                        return(
+                        <MenuItem key={year} value={year}>
+                            {year}
+                        </MenuItem>
+                        )
+                    })}
                 </Select>
                 {(onSubmit && !degreePassYear) && <FormHelperText sx={{marginLeft : '0', color : '#d32f2f'}}>Select Year of PAssing</FormHelperText>}
                 </FormControl>
@@ -310,7 +332,9 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
             <Box className="w-full mt-0">
                 <FormControlLabel
                 label="Post Graduation"
-                control={<Checkbox checked={highDegree ? true : false} onChange={(e)=>(e.target.checked ? setHighDegree('PG') : setHighDegree(null))} />}
+                control={<Checkbox checked={highDegree ? true : false} onChange={(e)=>{
+                    (e.target.checked ? setHighDegree('PG') : setHighDegree(null));
+                    if(editDetails)handleShowSnackbar('warning','Please note that if you change the PG details option, your previously edited educational years may revert back to their original values. Please ckeck once and continue.')}} />}
                 />
             </Box>
 
@@ -338,11 +362,14 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
                         '& .MuiInputLabel-root': {
                         fontSize: '20px',
                         },}}>
-                    {years.map((year) => (
-                    <MenuItem key={year} value={year}>
-                        {year}
-                    </MenuItem>
-                    ))}
+                    {years.map((year) => {
+                        if(parseInt(year) >= parseInt(degreePassYear))
+                        return(
+                        <MenuItem key={year} value={year}>
+                            {year}
+                        </MenuItem>
+                        )
+                    })}
                 </Select>
                 {(onSubmit && highDegree && !pGStartYear) && <FormHelperText sx={{color : '#d32f2f', marginLeft : '0'}}>Select Start Year</FormHelperText>}
                 </FormControl>
@@ -365,11 +392,14 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
                     <MenuItem value={'Currently Pursuing'}>
                         Currently Pursuing
                     </MenuItem>
-                    {years.map((year) => (
-                    <MenuItem key={year} value={year}>
-                        {year}
-                    </MenuItem>
-                    ))}
+                    {years.map((year) => {
+                        if(parseInt(year) > parseInt(pGPassYear))
+                        return(
+                        <MenuItem key={year} value={year}>
+                            {year}
+                        </MenuItem>
+                        )
+                    })}
                 </Select>
                 {(onSubmit && highDegree && !pGPassYear) && <FormHelperText sx={{color : '#d32f2f', marginLeft : '0'}}>Select Year of Passing</FormHelperText>}
                 </FormControl>
@@ -387,6 +417,20 @@ const EducationDetails = ({ handleBack, handleNext, highDegree, setHighDegree, e
         <Button variant="contained" 
         onClick={onSubmitDetails} endIcon={<ArrowForward />}>Next</Button>
     </Box>
+
+    <Dialog open={confirmLeapYear} sx={{zIndex : '910'}}>
+        <DialogTitle>Are you sure you want to continue?</DialogTitle>
+        <DialogContent>
+            <DialogContentText>
+                Before you decide to continue, are you aware of the year gap that exists? <br/>
+                It’s something to think about.
+            </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+            <Button variant='outlined' onClick={()=>setConfirmLeapYear(false)}>No, I want to change</Button>
+            <Button variant='contained' onClick={handleNext}>Yes, Continue</Button>
+        </DialogActions>
+    </Dialog>
     </>
   )
 }

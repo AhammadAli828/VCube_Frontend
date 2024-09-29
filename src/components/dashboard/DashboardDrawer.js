@@ -114,10 +114,10 @@ const DashboardDrawer = ({
     : (user === 'Super Admin') ? 
     [
       <PersonAddAlt1 />, <GroupAddRounded />, <GroupRemoveRounded />,
-      <AddBoxRounded />, <DisabledByDefaultRounded />, <PeopleAltRounded />,
+      <AddBoxRounded color='primary' />, <DisabledByDefaultRounded color='primary' />, <PeopleAltRounded color='primary' />,
       <AddToQueueRounded/>, <DvrRounded/>, <UploadFileRounded />,
        <TaskRounded />, <PostAddRounded sx={{ fontSize: '25px' }} />,
-      <PreviewRounded />, <ForwardToInboxRounded />,
+      <PreviewRounded />, <ForwardToInboxRounded color='primary' />,
       <SendRounded />, <MarkChatReadRounded />, <ReviewsRounded />, <FileDownloadRounded />
     ]
     : 

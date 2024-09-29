@@ -7,7 +7,6 @@ import InputField from '../InputField';
 import { BatchContext } from '../api/batch';
 import { StudentsAuthContext } from '../api/StudentsAuth';
 
-
 const PersonalInfo = ({ personalData, setPersonalData, resumeName, setResumeName, handleNext, handleShowSnackbar, setOpenDialog, setDialogMsg, user, selectedCourse, editDetails }) => {
     const { fetchBatchData } = useContext(BatchContext);
     const { checkStudentDetails } = useContext(StudentsAuthContext);
@@ -98,7 +97,7 @@ const PersonalInfo = ({ personalData, setPersonalData, resumeName, setResumeName
       }
       setLoading1(false);
       setLoading2(false);
-      },2000)
+      },1000)
     };
 
     const checkPhoneError = (getvalue)=>{
@@ -164,7 +163,7 @@ const PersonalInfo = ({ personalData, setPersonalData, resumeName, setResumeName
     <>
     <Box className="w-full h-[27rem] mt-5 mb-14 flex flex-row items-center justify-between">
         <Box className='w-1/4 h-96 flex flex-col items-center justify-center'>
-        <img src={image ? image : '/images/Empty-Men-Icon.png'} alt='' width="180px" className="h-[180px] 'border-[1px] border-gray-300' rounded-full object-cover" />
+        <img src={image ? image : '/images/Empty-Men-Icon.png'} alt='' width="180px" className="h-[180px] border-[1px] border-gray-300 rounded-full object-contain" />
         <Box sx={{ m: 1, position: 'relative', marginTop : '5%' }} className="flex items-center justify-center w-full">
         <Button
           disabled={loading1}
@@ -250,7 +249,6 @@ const PersonalInfo = ({ personalData, setPersonalData, resumeName, setResumeName
               <Select
                 error={isSubmit && !gender}
                 value={gender}
-                disabled={user === 'Student'}
                 onChange={(e)=>setGender(e.target.value)}
                 sx={{width: '100%',
                   '& .MuiInputBase-input': {
@@ -298,7 +296,7 @@ const PersonalInfo = ({ personalData, setPersonalData, resumeName, setResumeName
                 <MenuItem value="Offline">Offline</MenuItem>
                 <MenuItem value="Online">Online</MenuItem>
               </Select>
-              <FormHelperText sx={{color : '#d32f2f'}}>{(isSubmit && !gender) ? "Select Gender" : ""}</FormHelperText>
+              <FormHelperText sx={{color : '#d32f2f'}}>{(isSubmit && !gender) ? "Select Mode" : ""}</FormHelperText>
               </FormControl>
           </Box>
           <Box className="w-[95%] h-20 flex flex-col items-center justify-center">
@@ -350,56 +348,3 @@ const PersonalInfo = ({ personalData, setPersonalData, resumeName, setResumeName
 }
 
 export default PersonalInfo;
-
-
-      {/* <Box className="w-[95%] h-20 flex items-start justify-between">
-            <WorkOutlineOutlined className="text-gray-500 mt-6" sx={{fontSize : '30px'}} />
-              <FormControl variant="standard" sx={{width : '88%'}}>
-              <InputLabel shrink={experience ? true : false} sx={{fontSize : '20px', color : (isSubmit && !experience) ? '#d32f2f' : ""}}>Select Experience *</InputLabel>
-              <Select
-                error={isSubmit && !experience}
-                value={experience}
-                onChange={(e)=>setExperience(e.target.value)}
-                sx={{width: '100%',
-                  '& .MuiInputBase-input': {
-                  fontSize: '20px',
-                  padding: '5px 0',
-                  },
-                  '& .MuiInputLabel-root': {
-                  fontSize: '20px',
-                  },}}
-                  >
-                <MenuItem value="Fresher">Fresher</MenuItem>
-                <MenuItem value="Experienced 1-2y">Experienced 1-2y</MenuItem>
-                <MenuItem value="Experienced 3-5y">Experienced 3-5y</MenuItem>
-                <MenuItem value="Experienced 5+y">Experienced 5y+</MenuItem>
-              </Select>
-              <FormHelperText sx={{color : '#d32f2f'}}>{(isSubmit && !experience) ? "Select Experience" : ""}</FormHelperText>
-              </FormControl>
-            </Box>
-
-
-            <Box className="w-[95%] h-20 flex items-start justify-between">
-            <WorkRounded className="text-gray-500 mt-6" sx={{fontSize : '30px'}} />
-              <FormControl variant="standard" sx={{width : '88%'}}>
-              <InputLabel shrink={employement ? true : false} sx={{fontSize : '20px', color : (isSubmit && !employement) ? '#d32f2f' : ""}}>Select Employement *</InputLabel>
-              <Select
-                error={isSubmit && !employement}
-                value={employement}
-                onChange={(e)=>setEmployement(e.target.value)}
-                sx={{width: '100%',
-                  '& .MuiInputBase-input': {
-                  fontSize: '20px',
-                  padding: '5px 0',
-                  },
-                  '& .MuiInputLabel-root': {
-                  fontSize: '20px',
-                  },}}
-                  >
-                <MenuItem value="Open to Work">Open to Work</MenuItem>
-                <MenuItem value="Currently Working as Intern">Currently Working as Intern</MenuItem>
-                <MenuItem value="Currently Working as Employee">Currently Working as Employee</MenuItem>
-              </Select>
-              <FormHelperText sx={{color : '#d32f2f'}}>{(isSubmit && !employement) ? "Select Gender" : ""}</FormHelperText>
-              </FormControl>
-            </Box> */}

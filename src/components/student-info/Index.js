@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback, lazy, Suspense, startTransition, memo } from 'react';
 import { Box, Card, IconButton, Tooltip, Badge, SpeedDial, SpeedDialIcon, SpeedDialAction, Link, Dialog, DialogContent, DialogContentText, DialogTitle, DialogActions, Button, Typography } from '@mui/material';
-import { MenuRounded, Notifications, Edit, Close, SimCardDownloadRounded, LogoutRounded, CloseRounded, MailRounded, SmsRounded, ContentPasteRounded, ThumbUpAltRounded, CodeRounded, SmartDisplayRounded, ReportProblemRounded } from '@mui/icons-material';
+import { MenuRounded, Notifications, Edit, Close, SimCardDownloadRounded, LogoutRounded, CloseRounded, MailRounded, SmsRounded, ContentPasteRounded, ThumbUpAltRounded, CodeRounded, SmartDisplayRounded, ReportProblemRounded, RefreshRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { StudentsContext } from '../api/students';
 import { BatchAttendanceContext } from '../api/batch-attendance';
@@ -82,10 +82,14 @@ const StudentInfo = () => {
   const [is_User_Authenticated, setIs_User_Authenticated] = useState(false);
   const [isStdAuthenticated, setIsStdAuthenticated] = useState(false);
   const [reportIssue, setReportIssue] = useState(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [refreshed, setRefreshed] = useState(false);
+  const [timer, setTimer] = useState(10);
 
   const Check_Auth = async () => {
     await UseUserAuthentication(checkUserAuth, setIs_User_Authenticated);
     await UseStudentAuthentication(checkStdAuth, setIsStdAuthenticated);
+    !isAuthChecked && setIsAuthChecked(true);
   }
 
   const handleShowSnackbar = useCallback((variant, message) => {
@@ -170,8 +174,13 @@ const StudentInfo = () => {
         if (isUser === 'Student' && isStdAuthenticated && isStdAuthenticated) {
           removeStudentLoginData();
           studentAuthChk();
+        }else if(isUser === 'Super Admin' && isUserAuthenticated && is_User_Authenticated && isPlacementsAuthenticated && is_User_Authenticated){
+          sessionStorage.getItem('Navigate') === 'Placements' ? 
+            navigate(`/vcube/placements/dashboard/${uniqueURL.substring(30,60)}`) :
+            navigate(`/vcube/dashboard/${uniqueURL.substring(0,30)}`);
+          sessionStorage.setItem('Navigate','');
         } else if (isUserAuthenticated && is_User_Authenticated) {
-          navigate(`/vcube/dashboard/${uniqueURL.substring(0,30)}`); 
+          navigate(`/vcube/dashboard/${uniqueURL.substring(0,30)}`);
         }else if(isPlacementsAuthenticated && is_User_Authenticated){
           navigate(`/vcube/placements/dashboard/${uniqueURL.substring(30,60)}`);
         }else{
@@ -181,6 +190,30 @@ const StudentInfo = () => {
     });    
   };
 
+  const refreshData = async () => {
+    setIsLoading(true);
+    await fetchData();
+    await fetchPermission();
+    await Check_Auth();
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    let timerId;
+  
+    if (refreshed) {
+      timerId = setTimeout(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);              
+    }
+
+    if (timer === 0) {
+      setRefreshed(false);
+      setTimer(10);
+    }
+  
+    return () => clearTimeout(timerId);
+  }, [timer, refreshed]);
 
   const saveWatchTime = async () => {
     if(isUser === 'Student' && dialogState.classVedio){
@@ -238,14 +271,13 @@ const StudentInfo = () => {
     { icon: <Link href={studentData.personal.Resume} download={`VCube-${studentData.personal.Name}-${studentData.personal.Course}-${studentData.personal.BatchName}.pdf`} ><SimCardDownloadRounded /></Link>, name: 'Download Resume' },
     isUser.split(' ')[0] !== 'Placements'  && { icon: <ContentPasteRounded />, name: 'Assessments', onClick: () => setDialogState(prev => ({ ...prev, assessmentDialog: true })) },
     isUser === 'Student' && { icon: <CodeRounded />, name: 'Code Editor', onClick: () => setDialogState(pre => ({ ...pre, practice_CodeEditor: true })) },
-    // isUser === 'Student' && 
-    { icon: <SmartDisplayRounded />, name: 'Class Recordings', onClick: ()=> setDialogState(pre => ({ ...pre, classVedio: true })) },
+    isUser === 'Student' && { icon: <SmartDisplayRounded />, name: 'Class Recordings', onClick: ()=> setDialogState(pre => ({ ...pre, classVedio: true })) },
     { icon: <SmsRounded />, name: 'Messages you sent', onClick: () => setDialogState(prev => ({ ...prev, sentMessageForm: true })) },
     { icon: <ThumbUpAltRounded />, name: 'Feedback Form', onClick: () => setDialogState(prev => ({ ...prev, feedbackForm: true })) },
     { icon: <LogoutRounded />, name: isUser === 'Student' ? 'Logout' : 'Close Details', onClick: isUser === 'Student' ? () => setDialogState(prev => ({ ...prev, isLogout: true })) : handleClose }
   ].filter(Boolean);
 
-
+  if(isAuthChecked){
   if((is_User_Authenticated && (isUserAuthenticated || isPlacementsAuthenticated)) || (isStdAuthenticated && isStudentAuthenticated)){
     return (
       <Box className="bg-slate-100 w-screen h-screen">
@@ -266,6 +298,7 @@ const StudentInfo = () => {
                 fetchStdData={fetchData}
                 handleClose={handleClose}
                 JoiningDate={studentData.joiningDate}
+                fetchData={fetchData}
               />
             ) : tabsValue === 1 ? (
               <AttendanceINsights
@@ -297,16 +330,23 @@ const StudentInfo = () => {
             {isUser === 'Student' && (
               <>
                 <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: '1%' }} onClick={() => setDialogState(prev => ({ ...prev, stdNotifications: true }))}>
-                  <Tooltip title="Your Notifications"><Badge badgeContent={notifLen} color='error' max={99}><Notifications className='text-gray-500 cursor-pointer' sx={{ fontSize: '30px' }} /></Badge></Tooltip>
+                  <Tooltip title="Your Notifications" arrow><Badge badgeContent={notifLen} color='error' max={99}><Notifications className='text-gray-500 cursor-pointer' sx={{ fontSize: '30px' }} /></Badge></Tooltip>
                 </MemoizedIconButton>
                 <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: '5%' }} onClick={() => setDialogState(prev => ({ ...prev, stdMailNotifications: true }))}>
-                  <Tooltip title='Placements Notifications'><Badge badgeContent={mailNotif} color='error' max={99}><MailRounded className='text-gray-500 cursor-pointer' sx={{ fontSize: '30px' }} /></Badge></Tooltip>
+                  <Tooltip title='Placements Notifications' arrow><Badge badgeContent={mailNotif} color='error' max={99}><MailRounded className='text-gray-500 cursor-pointer' sx={{ fontSize: '30px' }} /></Badge></Tooltip>
                 </MemoizedIconButton>
                 <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: '9%' }} onClick={()=>setReportIssue(true)} >
-                  <Tooltip title='Report an Issue'><ReportProblemRounded className='text-gray-500 cursor-pointer' sx={{ fontSize: '30px' }} /></Tooltip>
+                  <Tooltip title='Report an Issue' arrow><ReportProblemRounded className='text-gray-500 cursor-pointer' sx={{ fontSize: '30px' }} /></Tooltip>
                 </MemoizedIconButton>
               </>
             )}
+
+            <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: isUser === 'Student' ? '12%' : '1%' }} onClick={()=>{!refreshed && refreshData();setRefreshed(true)}}>
+                <Tooltip title={`Refresh ${refreshed ? timer < 10 ? `in 0${timer}` : `in ${timer}` : ''}`} arrow>
+                  <RefreshRounded/>
+                </Tooltip>
+            </MemoizedIconButton>
+
             <SpeedDial
               ariaLabel="Menu SpeedDial"
               onClick={fetchPermission}
@@ -397,6 +437,7 @@ const StudentInfo = () => {
                 stdId={stdId}
                 JoiningDate={studentData.joiningDate}
                 isUser={isUser}
+                configs={studentData.config}
           />}
           {dialogState.stdNotifications && <StudentNotifications 
                 isOpen={dialogState.stdNotifications} 
@@ -422,9 +463,7 @@ const StudentInfo = () => {
                 isOpen={dialogState.solveAssessment} 
                 setIsOpen={(open) => setDialogState(pre => ({ ...pre, solveAssessment: open }))} 
                 stdId={stdId} 
-                configs={studentData.config} 
                 handleShowSnackbar={handleShowSnackbar} 
-                fetchStdData={fetchData} 
                 solveAssessmentData={solveAssessmentData}
                 name={studentData.personal.Name} 
                 course={studentData.personal.Course}
@@ -473,6 +512,9 @@ const StudentInfo = () => {
     );
   }else{
     navigate(`/vcube/error/${sessionStorage.getItem('UniqueURL').substring(30,70)}`);
+  }
+  }else{
+    <LoadingSkeletonAlternate/>
   }
 };
 

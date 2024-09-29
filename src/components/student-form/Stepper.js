@@ -55,7 +55,7 @@ const SimpleStepper = ({ handleShowSnackbar, setIsLoading, setOpenDialog, setIsO
                                           setResumeName={setResumeName} handleNext={handleNext} handleShowSnackbar={handleShowSnackbar} editDetails={editDetails}
                                           setOpenDialog={setOpenDialog} setDialogMsg={setDialogMsg} user={user} selectedCourse={selectedCourse} />
         : (activeStep === 1) ? <EducationDetails handleBack={handleBack} handleNext={handleNext} highDegree={highDegree} setHighDegree={setHighDegree} 
-                              educationData={educationData} setEducationData={setEducationData} handleShowSnackbar={handleShowSnackbar} />
+                              educationData={educationData} setEducationData={setEducationData} handleShowSnackbar={handleShowSnackbar} editDetails={editDetails} />
          : <PlacementRequirements handleBack={handleBack} personalData={personalData} educationData={educationData} placementData={placementData} 
                                   setPlacementData={setPlacementData} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} setIsOpen={setIsOpen}
                                   selectedCourse={selectedCourse} editDetails={editDetails} joiningDate={joiningDate} />}

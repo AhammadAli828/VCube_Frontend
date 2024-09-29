@@ -85,7 +85,7 @@ const UserSettings = ({ settingsOpen, setSettingsOpen, handleShowSnackbar }) => 
                 <Box className="w-full h-[90%] flex flex-row items-center justify-center">
                     <Box className='w-1/5 h-full pt-12 flex flex-col items-center'>
                         <Box className="w-[210px] h-[210px] border-2 rounded-full flex items-center justify-center relative overflow-hidden">
-                            {(image && typeof image !== 'object') || (user && user.Image && user.Image !== 'N/A' && typeof image !== 'object') ? <img src={image} alt='' className=' w-[210px] h-[210px] object-cover' /> :
+                            {(image && typeof image !== 'object') || (user && user.Image && user.Image !== 'N/A' && typeof image !== 'object') ? <img src={image} alt='' className=' w-[210px] h-[210px] object-contain' /> :
                             <Avatar sx={{width : '210px', height : '210px', background : imageColor }}>
                                 <Typography variant='h1'>{user && user.Username[0]}</Typography>
                             </Avatar>}

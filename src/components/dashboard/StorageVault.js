@@ -1,10 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, InputAdornment, Link, Menu, MenuItem, TextField, Tooltip, Typography } from '@mui/material';
-import { CloseRounded, CreateNewFolderRounded, DeleteRounded, DriveFileRenameOutlineRounded, FolderRounded, InsertDriveFileRounded, MoreVertRounded, NoteAddRounded, OpenInNewRounded } from '@mui/icons-material';
+import { CloseRounded, CreateNewFolderRounded, DeleteRounded, DriveFileRenameOutlineRounded, FolderRounded, InsertDriveFileRounded, MoreVertRounded, NoteAddRounded, OpenInNewRounded, ReplyRounded } from '@mui/icons-material';
 import VerticalLinearStepper, { getFileExtension, getFileNameWithoutExtension } from './DriveCreateFolder';
 import { DateTime } from '../date-time';
 import { UsersAuthContext } from '../api/UsersAuth';
 import { UserDetails } from '../UserDetails';
+import ShareFiles from './ShareFiles';
 
 const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isValidated, driveUser }) => {
     const { getUserDriveData, patchUserDriveData, deleteUserDriveData } = useContext(UsersAuthContext);
@@ -21,6 +22,7 @@ const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isV
     const [moveFile, setMoveFile] = useState(null);
     const [fileNameField, setFileNameField] = useState(null);
     const [c_file_name, setC_File_Name] = useState(null);
+    const [shareFile, setShareFile] = useState(false);
     
     const isUserValidated = () => {
         return driveUser && isValidated && driveUser.Is_Validated && driveUser.Validated_Date === DateTime().split(' ')[0];
@@ -90,8 +92,12 @@ const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isV
 
     const handleDrop = (e, folder) => {
         e.preventDefault();
-        setDroppedFolder(folder);
-        setMoveFile(true);
+        if(folder === 'Share'){
+            setShareFile(true);
+        }else{
+            setDroppedFolder(folder);
+            setMoveFile(true);
+        }
     };
 
     const manageFile = async (nameChange=false) => {
@@ -134,10 +140,11 @@ const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isV
                 </IconButton>
             </Card>
             <DialogTitle className='flex items-center justify-between'>
-                <Box className='w-[30%] flex items-center justify-start'>
+                <Box className='w-[35%] flex items-center justify-start'>
                     <Button variant='contained' startIcon={<CreateNewFolderRounded/>} onClick={()=>setCreateFolder(true)}>New Folder</Button>
-                    <Button variant='contained' sx={{margin : '0 5%'}} startIcon={<NoteAddRounded/>} onClick={()=>{setCreateFolder(true);setFileCreate(true)}} >New File</Button>
-                    <DeleteRounded color='error' sx={{fontSize : '30px'}} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, 'Delete')} />
+                    <Button variant='contained' sx={{margin : '0 3%'}} startIcon={<NoteAddRounded/>} onClick={()=>{setCreateFolder(true);setFileCreate(true)}} >New File</Button>
+                    <DeleteRounded color='error' sx={{margin : '0 3%', fontSize : '30px'}} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, 'Delete')} />
+                    <ReplyRounded color='primary' fontSize='large' sx={{transform : 'scaleX(-1)'}} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, 'Share')} />
                 </Box>
                 <Box className='w-1/3 h-12 flex flex-col items-start justify-between'>
                     <Typography sx={{fontFamily : 'sans-serif'}}>100 MB of {totalStorage} MB Used</Typography>
@@ -196,7 +203,7 @@ const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isV
                                             InputProps={{ endAdornment: <InputAdornment position='end'>
                                                 <Typography color='black'>.{getFileExtension(file.FileName)}</Typography>
                                             </InputAdornment> }} /> :
-                                        <Typography className='min-h-8 pl-1' onDoubleClick={()=>{setFileNameField(index + 1);;setC_File_Name(getFileNameWithoutExtension(file.FileName))}}>{file.FileName}</Typography>
+                                        <Typography className='min-h-8 pl-1' onDoubleClick={()=>{setFileNameField(index + 1);setC_File_Name(getFileNameWithoutExtension(file.FileName))}}>{file.FileName}</Typography>
                                     }
                                 </Box>
                                 <Link href={file.File} target='_blank' className='w-full h-full'>
@@ -213,6 +220,9 @@ const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isV
                 {false && <img src='/images/no-files.png' alt='' className='w-[30%] mt-[10%] ml-[35%]' />}
             </DialogContent>
         </Dialog>
+
+        <ShareFiles isOpen={shareFile} setIsOpen={setShareFile} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} selectedFile={draggedFile} setSelectedFile={setDraggedFile} />
+
         <Dialog open={createFolder} maxWidth='lg' sx={{zIndex : '810'}}>
             <IconButton sx={{position : 'absolute'}} className='right-2 top-2' onClick={()=>{setCreateFolder(false);setFileCreate(false)}}>
                 <CloseRounded fontSize='large'/>
@@ -240,6 +250,7 @@ const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isV
                 <Button variant='contained' onClick={()=>{manageFile();setMoveFile(false)}}>Confirm</Button>
             </DialogActions>
         </Dialog>
+
         </>
         )
     }else{

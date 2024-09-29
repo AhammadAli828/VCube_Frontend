@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
-import { AttributionRounded } from '@mui/icons-material';
+import { AttributionRounded, RefreshRounded } from '@mui/icons-material';
 
-const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, selectedCourse, setSelectedCourse, userCourse, setShortLoading ,setTakeStdAtt }) => { 
-
+const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, selectedCourse, setSelectedCourse, userCourse, setShortLoading ,setTakeStdAtt, refreshData }) => { 
+    const [refreshed, setRefreshed] = useState(false);
+    const [timer, setTimer] = useState(10);
+    
     useEffect(()=>{
       setSelectedBatch(sessionStorage.getItem('SelectedBatch'));
       setSelectedCourse(sessionStorage.getItem('SelectedCourse'));
@@ -17,8 +19,26 @@ const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, 
       setShortLoading(true);
     }
 
+    useEffect(() => {
+      let timerId;
+    
+      if (refreshed) {
+        timerId = setTimeout(() => {
+          setTimer((prev) => prev - 1);
+        }, 1000);              
+      }
+  
+      if (timer === 0) {
+        setRefreshed(false);
+        setTimer(10);
+      }
+    
+      return () => clearTimeout(timerId);
+    }, [timer, refreshed]);
+
   return (
-    <Box className="h-14 mt-4 mb-4 w-[95%] ml-[2.5%] flex items-center justify-evenly bg-transparent">
+    <Box className="h-14 mt-4 mb-4 w-[95%] ml-[2.5%] flex items-center justify-between bg-transparent">
+      <Button endIcon={!refreshed && <RefreshRounded/>} variant='outlined' onClick={()=>{!refreshed && refreshData();setRefreshed(true)}}>Refresh {refreshed && `in ${timer < 10 ? `0${timer}` : `${timer}`}`}</Button>
      {userCourse === 'All' && user === 'Super Admin' && 
           <FormControl sx={{width : '30%'}} variant='standard'>
           <InputLabel variant='standard' shrink={selectedCourse ? true : false} sx={{fontSize : '20px', color : ''}}>Select Course</InputLabel>
