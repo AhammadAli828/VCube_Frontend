@@ -3,7 +3,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, InputAd
 import { AccountCircleRounded, AccountTreeRounded, DnsRounded, HttpsRounded, StorageRounded } from '@mui/icons-material';
 import { StudentsAuthContext } from '../api/StudentsAuth';
 
-const StudentConfigForm = ({ handleShowSnackbar, isOpen, setIsOpen, fetchStdData }) => {
+const StudentConfigForm = ({ handleShowSnackbar, isOpen, setIsOpen, fetchStdData, stdId }) => {
     const { postStudentConfigs } = useContext(StudentsAuthContext);
     const [student_config, setStudent_config] = useState({
         host: 'localhost',
@@ -30,7 +30,7 @@ const StudentConfigForm = ({ handleShowSnackbar, isOpen, setIsOpen, fetchStdData
             handleShowSnackbar('error','All fields are required. Please ensure that you fill out all fields.')
             return;
         }
-        const res = await postStudentConfigs(2,student_config);
+        const res = await postStudentConfigs(stdId, student_config);
         if(res.status === 'error'){
             if (res.code === 500){
                 handleShowSnackbar('error','Connection was failed.');
