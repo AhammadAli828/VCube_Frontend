@@ -476,6 +476,7 @@ const StudentInfo = () => {
                 handleShowSnackbar={handleShowSnackbar} 
                 configs={studentData.config}
                 fetchStdData={fetchData}
+                stdId={stdId}
           />}
           {dialogState.classVedio && <ClassVedios 
                 isOpen={dialogState.classVedio} 
