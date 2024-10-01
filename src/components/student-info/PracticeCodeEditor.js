@@ -12,7 +12,7 @@ import { handleFullScreen, handleExitFullScreen } from './AssessmentCodeEditor';
 import DOMPurify from 'dompurify';
 
 
-const PracticeCodeEditor = ({ isOpen, setIsOpen, handleShowSnackbar, configs, fetchStdData }) => {
+const PracticeCodeEditor = ({ isOpen, setIsOpen, handleShowSnackbar, configs, fetchStdData, stdId }) => {
     const { runCode } = useContext(ExecuteCodeContext);
     const [disp, setDisp] = useState(false);
     const code = useRef({
@@ -446,7 +446,7 @@ const PracticeCodeEditor = ({ isOpen, setIsOpen, handleShowSnackbar, configs, fe
             <Button variant='contained' onClick={()=>fileName && !fileName.includes('.') && (language === 'html' ? downloadHtmlFiles() : saveFile())}>Save</Button>
         </DialogActions>
     </Dialog>
-    <StudentCongifForm handleShowSnackbar={handleShowSnackbar} isOpen={dBConfig} setIsOpen={setDBConfig} fetchStdData={fetchStdData} />
+    <StudentCongifForm handleShowSnackbar={handleShowSnackbar} isOpen={dBConfig} setIsOpen={setDBConfig} fetchStdData={fetchStdData} stdId={stdId} />
     <Dialog open={close} onClose={()=>setClose(false)}>
         <DialogContent>
         <Typography>
