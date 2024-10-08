@@ -8,7 +8,7 @@ import { StudentsContext } from '../api/students';
 import { useNavigate } from 'react-router-dom';
 import { DateTime } from '../date-time';
 
-const PlacementRequirements = ({ handleBack, personalData, educationData, placementData, setPlacementData, setIsLoading, handleShowSnackbar, setIsOpen, selectedCourse, editDetails, joiningDate }) => {
+const PlacementRequirements = ({ handleBack, personalData, educationData, placementData, setPlacementData, setIsLoading, handleShowSnackbar, setIsOpen, selectedCourse, editDetails, joiningDate, refreshData }) => {
     const { postStudentData, patchStudentData } = useContext(StudentsContext);
     const dateTime = DateTime().split(' ');
     const navigate = useNavigate();
@@ -164,6 +164,7 @@ const PlacementRequirements = ({ handleBack, personalData, educationData, placem
         if (result && result.message){
             handleShowSnackbar('error',result.message);
         }else if (result === true){
+            refreshData();
             handleShowSnackbar('success',`Student - ${personalData.Name} details ${editDetails ? 'updated' : 'added'} successfully.`);
             setIsOpen(false);
         }

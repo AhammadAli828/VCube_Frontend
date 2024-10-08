@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, lazy, Suspense, useCallback } from 'react';
 import { Box, IconButton, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, Badge, Tooltip } from '@mui/material';
-import { CloseRounded, CloudRounded, FlipCameraAndroidRounded, HomeRounded, MenuRounded, NotificationsRounded, ReportProblemRounded, ReportRounded, ThreePRounded } from '@mui/icons-material';
+import { AssignmentLateRounded, CloseRounded, CloudRounded, FlipCameraAndroidRounded, HomeRounded, MenuRounded, NotificationsRounded, ReportProblemRounded, ReportRounded, ThreePRounded } from '@mui/icons-material';
 import { useAuth } from '../api/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
@@ -13,6 +13,9 @@ import { UserDetails } from '../UserDetails';
 import { UseUserAuthentication } from '../api/LoginCheck';
 import UpdateDeleteAssignment from './UpdateDeleteAssignment';
 import ReportDialog from '../ReportDialog';
+import { StudentsContext } from '../api/students';
+import { DateTime } from '../date-time';
+import StudentAssignmentRequests from './StudentAssignmentRequests';
 
 const StudentProgressOverview = lazy(() => import('./StudentProgressOverview'));
 const Search = lazy(() => import('./search'));
@@ -49,6 +52,7 @@ const Dashboard = () => {
   const { fetchCourse } = useContext(CourseContext);
   const { fetchBatchAttendanceDataByCourse } = useContext(BatchAttendanceContext);
   const { userGoogleLogout } = useContext(UserGoogleContext);
+  const { fetchAssignmentResults, patchAssignmentResults, fetchAssignmentRequests, deleteAssignmentRequests } = useContext(StudentsContext);
   const navigate = useNavigate();
   const isUser = UserDetails('User');
   const userCourse = UserDetails('Course');
@@ -98,6 +102,9 @@ const Dashboard = () => {
   const [reportIssue, setReportIssue] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [stdAttViewType, setStdAttViewType] = useState('Class');
+  const [assignmentRequests, setAssignmentRequests] = useState(false);
+  const [studentAssignmentRequests, setstudentAssignmentRequests] = useState([]);
 
   const handleShowSnackbar = useCallback((variant, message) => {
     enqueueSnackbar(message, {
@@ -148,6 +155,18 @@ const Dashboard = () => {
     }
   }, [fetchBatchAttendanceDataByCourse, selectedCourse, handleShowSnackbar]);
 
+  const fetchStudentAssignmentRequestData = async () => {
+    const res = await fetchAssignmentRequests();
+    if (res && !res.message){
+      const data = Array.isArray(res) && res.filter((data)=>(
+        data.BatchName === selectedBatch &&
+        data.Course === selectedCourse &&
+        data.Date === DateTime().split(' ')[0]
+      ))
+      setstudentAssignmentRequests(data);
+    }
+  }
+
   const handleLogout = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -161,6 +180,7 @@ const Dashboard = () => {
   useEffect(() => {
     isAuthChecked && Check_Auth();
     fetchData();
+    fetchStudentAssignmentRequestData();
     if (userCourse !== 'All')setSelectedCourse(userCourse);
   }, [shortLoading, isLoading]);
 
@@ -170,6 +190,7 @@ const Dashboard = () => {
     await Check_Auth();
     await fetchData();
     await fetchBatchAttData();
+    fetchStudentAssignmentRequestData();
     setIsLoading(false);
   }
 
@@ -221,11 +242,19 @@ const Dashboard = () => {
             </IconButton>
           </Tooltip>
             :
-        <Tooltip title='Your Notifications' arrow>
+          <Tooltip title='Your Notifications' arrow>
             <IconButton onClick={() => setBatchNotif(true)}>
               <Badge badgeContent={notifLen} color='error' max={99}>
                 <NotificationsRounded sx={{ fontSize: '28px', color: 'white' }} />
               </Badge>
+            </IconButton>
+          </Tooltip>}
+          {Array.isArray(studentAssignmentRequests) && studentAssignmentRequests.length > 0 &&
+          <Tooltip title='Student Assignmnet Requests' arrow>
+            <IconButton onClick={() => setAssignmentRequests(true)}>
+                <Badge badgeContent={studentAssignmentRequests.length} color='error' max={99}>
+                  <AssignmentLateRounded sx={{ fontSize: '28px', color: 'white' }} />
+                </Badge>
             </IconButton>
           </Tooltip>}
           </Box>
@@ -258,6 +287,8 @@ const Dashboard = () => {
             setShortLoading={setShortLoading}
             setTakeStdAtt={setTakeStdAtt}
             refreshData={refreshData}
+            stdAttViewType={stdAttViewType}
+            setStdAttViewType={setStdAttViewType}
           />
           <StudentDetails
             studentsData={studentsData}
@@ -272,7 +303,9 @@ const Dashboard = () => {
             setTakeStdAtt={setTakeStdAtt}
             openStdAttDialog={openStdAttDialog} 
             refresh={refresh}
+            refreshData={refreshData}
             setOpenStdAttDialog={setOpenStdAttDialog}
+            stdAttViewType={stdAttViewType}
           />
 
           <CustomDialog
@@ -285,7 +318,7 @@ const Dashboard = () => {
             setImportData={setImportData}
           />
           <StudentForm open={stdFormOpen} setOpen={setStdFormOpen} selectedCourse={selectedCourse} selectedBatch={selectedBatch} isUser={'Super Admin'} />
-          {settingsOpen && <UserSettings settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} handleShowSnackbar={handleShowSnackbar} />}
+          {settingsOpen && <UserSettings settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} handleShowSnackbar={handleShowSnackbar} refreshData={refreshData} />}
 
           {openDrawer && <DashboardDrawer
             openDrawer={openDrawer}
@@ -470,6 +503,18 @@ const Dashboard = () => {
                   setOpenAssessment={setOpenAssessment}
                   setEditAssignment={setEditAssignment}
                   setEditAssignmentData={setEditAssignmentData}
+            />
+
+            <StudentAssignmentRequests
+                isOpen={assignmentRequests}
+                setIsOpen={setAssignmentRequests}
+                data={studentAssignmentRequests}
+                fetchAssignmentResults={fetchAssignmentResults}
+                patchAssignmentResults={patchAssignmentResults}
+                deleteAssignmentRequests={deleteAssignmentRequests}
+                fetchStudentAssignmentRequestData={fetchStudentAssignmentRequestData}
+                handleShowSnackbar={handleShowSnackbar}
+                setIsLoading={setIsLoading}
             />
 
             <ReportDialog isOpen={reportIssue} setIsOpen={setReportIssue} setLoading={setIsLoading} />

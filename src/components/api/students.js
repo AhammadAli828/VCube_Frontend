@@ -353,14 +353,111 @@ export const StudentsProvider = ({ children }) => {
         }
       }
 
+      const fetchAssignmentResults = async (id) => {
+        try{
+            const url = id ? `${process.env.REACT_APP_STUDENT_ASSIGNMENT_RESULTS}${id}/` : process.env.REACT_APP_STUDENT_ASSIGNMENT_RESULTS;
+            const res = await axios.get(url,{
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            return res.data;
+        }catch(err){
+            return err;
+        }
+      }
+
+      const postAssignmentResults = async (data) => {
+        try{
+            const res = await axios.post(process.env.REACT_APP_STUDENT_ASSIGNMENT_RESULTS, data,{
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            return true;
+        }catch(err){
+            return err;
+        }
+      }
+
+    const patchAssignmentResults = async (data) => {
+        try{
+            const res = await axios.patch(process.env.REACT_APP_STUDENT_ASSIGNMENT_RESULTS, data,{
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            return true;
+        }catch(err){
+            return err;
+        }
+    }
+
+    const fetchAssignmentRequests = async (id) => {
+        const url = id ? `${process.env.REACT_APP_STUDENT_ASSIGNMENT_REQUESTS}${id}/` : process.env.REACT_APP_STUDENT_ASSIGNMENT_REQUESTS;
+        try{
+            const res = await axios.get(url,{
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            return res.data;
+        }catch(err){
+            return err;
+        }
+    }
+
+    const postAssignmentRequests = async (data) => {
+        try{
+            await axios.post(process.env.REACT_APP_STUDENT_ASSIGNMENT_REQUESTS, data, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            PlaySound('success');
+            return true;
+        }catch(err){
+            PlaySound('error');
+            return err;
+        }
+    }
+
+    const deleteAssignmentRequests = async (data) => {
+        try{
+            await axios.delete(process.env.REACT_APP_STUDENT_ASSIGNMENT_REQUESTS,{
+                data : data,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userTknDetails()}`,
+                    'X-CSRFToken' : csrfToken(),
+                },
+            })
+            return true;
+        }catch(err){
+            return err;
+        }
+    }
 
     return (
         <StudentsContext.Provider value={{ postStudentData, fetchStudentsData, fetchStudentsDataById, patchStudentData, deleteStudentData,
-                                        getStudentAttendanceById, getStudentAttendanceByCourse, postStudentAttendance,
-                                        fetchStudentMessageData, postStudentMessageData, deleteStudentMessageData,
-                                        fetchBatchToStudentMessageData, postBatchToStudentMessageData, deleteBatchToStudentMessageData,
-                                        postBulkStudentData, deleteBulkStudentData, deleteStudentRecords,
-                                        fetchStudentWatchTimeData, postStudentWatchTimeData, patchStudentWatchTimeData}}>
+                                            getStudentAttendanceById, getStudentAttendanceByCourse, postStudentAttendance,
+                                            fetchStudentMessageData, postStudentMessageData, deleteStudentMessageData,
+                                            fetchBatchToStudentMessageData, postBatchToStudentMessageData, deleteBatchToStudentMessageData,
+                                            postBulkStudentData, deleteBulkStudentData, deleteStudentRecords,
+                                            fetchStudentWatchTimeData, postStudentWatchTimeData, patchStudentWatchTimeData,
+                                            fetchAssignmentResults, postAssignmentResults, patchAssignmentResults,
+                                            fetchAssignmentRequests, postAssignmentRequests, deleteAssignmentRequests,
+                                        }}>
             {children}
         </StudentsContext.Provider>
     );

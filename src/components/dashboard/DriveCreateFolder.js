@@ -16,7 +16,7 @@ export const getFileNameWithoutExtension = (filename) => {
   return lastDotIndex !== -1 ? filename.substring(0, lastDotIndex) : filename;
 };
 
-const VerticalLinearStepper = ({ handleShowSnackbar, setIsLoading, driveUser, setCreateFolder, createFile, setFileCreate, fetchData }) => {
+const VerticalLinearStepper = ({ handleShowSnackbar, setIsLoading, driveUser, setCreateFolder, createFile, setFileCreate, fetchData, folders, fileNames, selectedFolder, filesStorage, totalStorage }) => {
   const { postUserDriveData } = useContext(UsersAuthContext);
   const user = UserDetails('All');
   const dateTime = DateTime();
@@ -24,7 +24,7 @@ const VerticalLinearStepper = ({ handleShowSnackbar, setIsLoading, driveUser, se
   const [isFileError, setIsFileError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [filesData, setFilesData] = useState(null);
-  const [folderName, setFolderName] = useState(createFile ? 'N/A' : null);
+  const [folderName, setFolderName] = useState(createFile ? selectedFolder ? selectedFolder : 'N/A' : null);
   const steps = createFile ? ['Add Files','Create Files'] : ['Set Folder Name', 'Add Files','Create Folder'];
 
   const handleNext = () => {
@@ -88,10 +88,33 @@ const VerticalLinearStepper = ({ handleShowSnackbar, setIsLoading, driveUser, se
       cnt++;
     };
     setFilesData(data);
-    setTimeout(()=>{handleNext()},1000);
+    handleNext();
   };
 
+  function hasUniqueNames(array) {
+    const names = array.map(obj => obj.FileName);
+    const uniqueNames = new Set(names);
+    if(uniqueNames.size !== names.length)handleShowSnackbar('error','Files name should be unique.');
+    if(createFile && array.some((obj)=>fileNames.includes(obj.FileName)))handleShowSnackbar('error','The file name already exists.');
+    return uniqueNames.size === names.length && (!createFile || !array.some((obj)=>fileNames.includes(obj.FileName)));
+  }
+
   const submitData = async () => {
+    if(!hasUniqueNames(filesData)){
+      handleBack();
+      return;
+    }
+    const files_mb = Array.isArray(filesData) && filesData.length > 0 
+        ? filesData.reduce((total, file) => {
+                const size = parseFloat(file.Size);
+                return total + (isNaN(size) ? 0 : size);
+        }, 0).toFixed(2)
+        : 0;
+    if(parseInt(filesStorage) + parseInt(files_mb) >= 10 || parseInt(totalStorage) + parseInt(files_mb) >= 100){
+      handleShowSnackbar('error',`Your files storage limit has been reached to ${totalStorage >= 100 ? '100' : '10'} MB.`);
+      handleBack();
+      return;
+    }
     setIsLoading(true);
     const res = await postUserDriveData(user.Course, user.Username, filesData);
     fetchData();
@@ -113,6 +136,11 @@ const VerticalLinearStepper = ({ handleShowSnackbar, setIsLoading, driveUser, se
     multiple: true,
   });
 
+  const folderNameAlert = (name) => {
+    handleShowSnackbar('error',`Folder name "${name}" already exists`);
+    return '';
+  }
+
   return (
     <Box className='w-full h-full'>
       <Stepper activeStep={activeStep} orientation="vertical">
@@ -129,7 +157,7 @@ const VerticalLinearStepper = ({ handleShowSnackbar, setIsLoading, driveUser, se
             </StepLabel>
             <StepContent>
               {(createFile ? index === -1 : index === 0) ? <Box className='w-full h-20 flex items-center justify-start'>
-                <TextField label='Enter Foldername' value={folderName} onChange={(e)=>setFolderName(e.target.value)} />
+                <TextField label='Enter Foldername' value={folderName} onChange={(e)=>setFolderName(folders.includes(e.target.value) ? folderNameAlert(e.target.value) : e.target.value)} />
               </Box> 
               : (createFile ? index === 0 : index === 1) ? 
                 <Box
@@ -191,7 +219,7 @@ const VerticalLinearStepper = ({ handleShowSnackbar, setIsLoading, driveUser, se
                     }}  className='w-full h-16'
                     InputProps={{endAdornment: <InputAdornment position="end">
                       <Typography color='primary' variant='h6'>.{getFileExtension(fileData.FileName)}</Typography>
-                    </InputAdornment>}} 
+                    </InputAdornment>}}
                 />))}
               </Box>}
               <Box sx={{ mb: 2 }}>

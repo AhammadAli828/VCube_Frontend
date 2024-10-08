@@ -1,9 +1,9 @@
-export const DateTime = () => {
+export const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+];
 
-    const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
+export const DateTime = () => {
 
     const now = new Date();
 
@@ -15,5 +15,5 @@ export const DateTime = () => {
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const seconds = now.getSeconds().toString().padStart(2, '0');
 
-    return `${day}-${monthName}-${year} ${hours}:${minutes}:${seconds}`;
+    return `${day < 10 ? `0${day}` : day}-${monthName}-${year} ${hours}:${minutes}:${seconds}`;
 }

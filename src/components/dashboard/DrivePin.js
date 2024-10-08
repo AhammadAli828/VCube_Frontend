@@ -139,7 +139,7 @@ const DrivePin = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setIsVa
         <IconButton sx={{position : 'absolute'}} className='top-1 right-1' onClick={()=>{handleClear();setIsOpen(false)}}>
             <CloseRounded fontSize='large' />
         </IconButton>
-        {/* <DialogContent className={`w-full ${forgot ? 'h-[30rem]' : 'h-[20rem]'} flex flex-col items-center justify-start`}>
+        <DialogContent className={`w-full ${forgot ? 'h-[30rem]' : 'h-[20rem]'} flex flex-col items-center justify-start`}>
             {!forgot ? <Box className='w-full h-full flex flex-col items-center justify-start'>
                 <SecurityRounded sx={{fontSize : '50px'}} color='primary' />
                 <Typography variant='h5' sx={{margin : '20px 0'}}>Hi Ahammad282</Typography>
@@ -179,11 +179,11 @@ const DrivePin = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, setIsVa
         <DialogActions>
             <Button variant='outlined'onClick={()=>{handleClear();!forgot && setIsOpen(false)}}>Cancel</Button>
             <Button variant='contained' onClick={()=>{forgot ? resetPin() : validateUser()}}>Submit</Button>
-        </DialogActions> */}
-        <DialogContent className='flex flex-col items-center justify-evenly'>
+        </DialogActions>
+        {/* <DialogContent className='flex flex-col items-center justify-evenly'>
             <img src='/images/developer-mode.gif' alt='' className='w-[80%] h-[80%]' />
             <Typography variant='h6' color='grey' >Our drive is currently in development. We'll return shortly!</Typography>
-        </DialogContent>
+        </DialogContent> */}
     </Dialog>
   )
 }

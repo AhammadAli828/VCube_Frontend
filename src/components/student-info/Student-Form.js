@@ -6,7 +6,7 @@ import { useSnackbar } from 'notistack';
 import LoadingSkeleton from '../skeleton';
 import CustomDialog from '../dashboard/Dialog';
 
-const StudentDetailsEditForm = ({ isOpen, setIsOpen, student_Personal_Details, student_Education_Details, student_Placement_Details, user, editDetails=false, joiningDate, selectedCourse }) => {
+const StudentDetailsEditForm = ({ isOpen, setIsOpen, student_Personal_Details, student_Education_Details, student_Placement_Details, user, editDetails=false, joiningDate, selectedCourse, refreshData }) => {
     const { enqueueSnackbar } = useSnackbar();
     const [isLoading, setIsLoading] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
@@ -44,7 +44,7 @@ const StudentDetailsEditForm = ({ isOpen, setIsOpen, student_Personal_Details, s
     <Box className="h-full flex flex-col items-center justify-center">
         <SimpleStepper handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} setOpenDialog={setOpenDialog} setIsOpen={setIsOpen} 
                         setDialogMsg={setDialogMsg} user={user} student_Personal_Details={student_Personal_Details} joiningDate={joiningDate} selectedCourse={selectedCourse}
-                        student_Education_Details={student_Education_Details} student_Placement_Details={student_Placement_Details} editDetails={editDetails} />
+                        student_Education_Details={student_Education_Details} student_Placement_Details={student_Placement_Details} editDetails={editDetails} refreshData={refreshData} />
     </Box>
         <CustomDialog open={openDialog} title={"Do you really want to close or return ?"} content={"The changes you made not be saved."} btnValue={'Return to Details'}
                     dialogMsg={dialogMsg} setDialog={setOpenDialog} setIsLoading={setIsLoading} handle_Close={handleClose} />

@@ -6,7 +6,7 @@ import PlacementRequirements from './PlacementRequirements';
 
 const steps = ['Personal Information', 'Education Details', 'Placement Requirements'];
 
-const SimpleStepper = ({ handleShowSnackbar, setIsLoading, setOpenDialog, setIsOpen, setDialogMsg, student_Personal_Details, student_Education_Details, student_Placement_Details, user, selectedCourse, editDetails, joiningDate }) => {
+const SimpleStepper = ({ handleShowSnackbar, setIsLoading, setOpenDialog, setIsOpen, setDialogMsg, student_Personal_Details, student_Education_Details, student_Placement_Details, user, selectedCourse, editDetails, joiningDate, refreshData }) => {
   const [personalData, setPersonalData] = useState({});
   const [educationData, setEducationData] = useState({});
   const [placementData, setPlacementData] = useState({});
@@ -58,7 +58,7 @@ const SimpleStepper = ({ handleShowSnackbar, setIsLoading, setOpenDialog, setIsO
                               educationData={educationData} setEducationData={setEducationData} handleShowSnackbar={handleShowSnackbar} editDetails={editDetails} />
          : <PlacementRequirements handleBack={handleBack} personalData={personalData} educationData={educationData} placementData={placementData} 
                                   setPlacementData={setPlacementData} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} setIsOpen={setIsOpen}
-                                  selectedCourse={selectedCourse} editDetails={editDetails} joiningDate={joiningDate} />}
+                                  selectedCourse={selectedCourse} editDetails={editDetails} joiningDate={joiningDate} refreshData={refreshData} />}
 
       </Box>
     </Box>

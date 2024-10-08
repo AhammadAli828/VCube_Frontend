@@ -17,7 +17,6 @@ export const getMonthsDifference = (startDate) => {
   if (end.getDate() < start.getDate()) {
       totalMonths--;
   }
-  console.log(totalMonths)
   return totalMonths + 1;
 }
 
@@ -144,7 +143,7 @@ const StudentProgressOverview = ({ batchAttData, fetchBatchAttData, setBatchAtte
     onClick : ()=>handleOpenDialog('Class')
   },{
     Icon : <img src="/images/MockTest-Icon.png" alt='' width='30px' />,
-    Title : 'Mock Tests',
+    Title : 'Weekly Tests',
     Title_Count : getData('Mock Test'),
     L_G1 : '#61b665',
     L_G2 : '#4ca650', 

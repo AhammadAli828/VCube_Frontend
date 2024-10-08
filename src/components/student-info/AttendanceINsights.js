@@ -116,8 +116,6 @@ const AttendanceINsights = ({ batchAttendanceData, stdAttendanceData, selectedYe
     }
   }
 
-  console.log(watch_Time_Arr)
-
   const handleClick = (event,idx,value) => {
     setMonth(`${xLabels[idx]}~${monthDays[idx]}~${idx}`);
     setAnchorEl(event.currentTarget);

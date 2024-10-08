@@ -1,16 +1,24 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Autocomplete, Box, Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
-import { AddRounded, CloseRounded, RemoveRounded } from '@mui/icons-material';
+import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { AddRounded, ChangeCircleRounded, CloseRounded, RemoveRounded } from '@mui/icons-material';
 import { AssessmentContext } from '../api/Assessment';
+import { DateTime } from '../date-time';
+import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import 'dayjs/locale/en-gb';
 
-const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, handleShowSnackbar, setIsLoading,     editAssignment, editAssignmentData, setEditAssignment, setEditAssignmentData }) => {
+const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatch, handleShowSnackbar, setIsLoading, editAssignment, editAssignmentData, setEditAssignment, setEditAssignmentData }) => {
     const { postAssessmentQuestions, patchAssessmentQuestions } = useContext(AssessmentContext);
     const [level, setLevel] = useState(null);
     const [title, setTitle] = useState(null);
     const [question, setQuestion] = useState(null);
     const [isSql, setIsSql] = useState(null);
     const [selectedMonth, setSelectedMonth] = useState(null);
+    const [assignmentType, setAssignmentType] = useState(null);
+    const [selectType, setSelectType] = useState(true);
     const [assignmentLength, setAssignmentLength] = useState(5);
+    const [selectedDateTime, setSelectedDateTime] = useState(dayjs());
     const [testCases, setTestCases] = useState(
         Array.from({ length: assignmentLength }, () => ({ inputs: [], expected: [] }))
     );
@@ -36,6 +44,8 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
             setSelectedMonth(JSON.parse(editAssignmentData[0].Question).Month)
             setTestCases(JSON.parse(editAssignmentData[0].Test_Cases))
             setExamples(JSON.parse(editAssignmentData[0].Examples))
+            setAssignmentType(editAssignmentData[0].WeeklyAssignment === 'No' ? 'Dialy Assignment' : 'Weekly Assignment')
+            if(assignmentType === 'Weekly Assignment')setSelectedDateTime(dayjs(editAssignmentData[0].WeeklyAssignment, 'DD-MMM-YYYY HH:mm:ss'))
         }
     },[isOpen, editAssignment, editAssignmentData])
 
@@ -77,7 +87,7 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
         const has_Empty_Arrays = examples.some(({ input, output, explanation }) =>
             input.length === 0 || output.length === 0 || explanation.length === 0
         );
-        if (!level || !title || !question || hasEmptyArrays || has_Empty_Arrays || !isSql || !selectedMonth){
+        if (!level || !title || !question || hasEmptyArrays || has_Empty_Arrays || !isSql || (assignmentType === 'Weekly Assignment' ? !selectedDateTime : !selectedMonth)){
             handleShowSnackbar('error','All fields are required. Please fill them out.');
             return;
         }
@@ -89,10 +99,11 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
         const data = {
             Course : selectedCourse,
             BatchName : selectedBatch,
-            Question : JSON.stringify({Title : title, Question : question, SQL : isSql, Month : selectedMonth}),
+            Question : JSON.stringify({Title : title, Question : question, SQL : isSql, Month : assignmentType === 'Weekly Assignment' ? 'N/A' : selectedMonth}),
             Test_Cases : JSON.stringify(testCases),
             Examples : JSON.stringify(examples),
-            Level : level
+            Level : level,
+            WeeklyAssignment : assignmentType === 'Weekly Assignment' ? formatDateTime(selectedDateTime) : 'No'
         }
         if(editAssignment && editAssignmentData)data['id'] = editAssignmentData[0].id;
         const res = editAssignment && editAssignmentData ? await patchAssessmentQuestions(data) : await postAssessmentQuestions(data);
@@ -106,7 +117,7 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
     };
 
     const handleClose = () => {
-        setTestCases(Array.from({ length: 10 }, () => ({ inputs: [], expected: [] })));
+        setTestCases(Array.from({ length: 5 }, () => ({ inputs: [], expected: [] })));
         setExamples(Array.from({ length: 2 }, () => ({ input: [], output: [], explanation: [] })));
         setTitle(null);
         setLevel(null);
@@ -116,16 +127,39 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
         setIsSql(null);
         setEditAssignment(false);
         setEditAssignmentData(null);
+        setSelectType(true);
+        setAssignmentType(null);
+        setAssignmentLength(5);
     }
 
+    const handleDateChange = (newValue) => {
+      setSelectedDateTime(newValue);
+    };
+
+    const formatDateTime = (date) => {
+        return date.format('DD-MMM-YYYY HH:mm:00');
+    };
+
   return (
-    <Dialog fullScreen open={isOpen}>
-        <Box className='flex items-center justify-between'>
-            <Typography variant='h5'>Upload Coding Assignment</Typography>
+    <>
+    <Dialog fullScreen open={isOpen} sx={{zIndex : '700'}}>
+        <Box className='flex items-center justify-between pl-5 pr-5'>
+            <Typography variant='h5'>Upload {assignmentType}{!editAssignment && <IconButton onClick={()=>{setAssignmentType(null);setSelectType(true)}}><ChangeCircleRounded color='primary' /></IconButton>}</Typography>
             <img src='/images/V-Cube-Logo.png' alt='' width='7%' className='absolute left-[46.50%]'/>
-            <IconButton className='top-2 right-2' onClick={handleClose}><CloseRounded sx={{fontSize : '35px'}} /></IconButton>
+            <IconButton className='top-2 right-0' onClick={handleClose}><CloseRounded sx={{fontSize : '35px'}} /></IconButton>
         </Box>
         <DialogTitle className='flex items-center justify-between'>
+            {assignmentType === 'Weekly Assignment' ?
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateTimePicker
+                label="Pick Date and Time"
+                value={selectedDateTime}
+                onChange={handleDateChange}
+                renderInput={(params) => <TextField {...params} />}
+                ampm={false}
+            />
+            </LocalizationProvider> 
+            :
             <FormControl className='w-52' variant='standard'>
                 <InputLabel shrink={selectedMonth} >Select Month</InputLabel>
                 <Select
@@ -134,7 +168,7 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
                     >
                     {[1,2,3,4,5,6,7,8].map((month)=><MenuItem value={`Month ${month}`}>Month {month}</MenuItem>)}
                 </Select>
-            </FormControl>
+            </FormControl>}
             <Box className='flex items-center justify-between w-52'>
                 <Typography>SQL? : </Typography>
                 <Button onClick={()=>setIsSql('Yes')} variant={isSql === 'Yes' ? 'contained' : 'outlined'}>Yes</Button>
@@ -256,8 +290,23 @@ const UploadCodingQuestions = ({ isOpen, setIsOpen, selectedCourse, selectedBatc
         <Button variant='contained' sx={{width : '50%', margin : '3% 0 0 25%', height : '40px'}}
             onClick={handleSubmit}>Submit</Button>
         </DialogContent>
-        
     </Dialog>
+
+    <Dialog open={isOpen && selectType && !editAssignment} sx={{zIndex : '710'}}>
+        <DialogTitle>Choose Assignment</DialogTitle>
+        <DialogContent className='w-[28rem]'>
+            <Box className='w-full flex items-center justify-between'>
+                <Button variant={assignmentType === 'Dialy Assignment' ? 'contained' : 'outlined'} onClick={()=>setAssignmentType('Dialy Assignment')}>Dialy Assignment</Button>
+                <Typography>or</Typography>
+                <Button variant={assignmentType === 'Weekly Assignment' ? 'contained' : 'outlined'} onClick={()=>setAssignmentType('Weekly Assignment')}>Weekly Assignment</Button>
+            </Box>
+        </DialogContent>
+        <DialogActions>
+            <Button variant='outlined' onClick={handleClose}>Close</Button>
+            <Button variant='contained' onClick={()=>setSelectType(false)}>Continue</Button>
+        </DialogActions>
+    </Dialog>
+    </>
   )
 }
 

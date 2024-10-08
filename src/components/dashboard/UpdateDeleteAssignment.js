@@ -38,9 +38,19 @@ const UpdateDeleteAssignment = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLo
         setIsLoading(false);
         if (resp === true){
             handleShowSnackbar('success','Assignment deleted successfully.');
+            handleClose();
         }else if(resp && resp.message){
             handleShowSnackbar('error',`Error occured ${resp.message}`);
         }
+    }
+
+    const handleClose = () => {
+        setIsOpen(false);
+        setId(null);
+        setOption(null);
+        setAssignment(null);
+        setName(null);
+        setDelete_(null);
     }
 
   return (
@@ -48,7 +58,7 @@ const UpdateDeleteAssignment = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLo
     <Dialog open={isOpen} sx={{zIndex : '700'}}>
         <img src='/images/V-Cube-Logo.png' alt='' width='15%' className='ml-[42.5%]'/>
         <IconButton sx={{position : 'absolute'}} className='right-1 top-1' 
-            onClick={()=>{setIsOpen(false);setId(null);setOption(null);setAssignment(null);setName(null)}}>
+            onClick={handleClose}>
                 <CloseRounded fontSize='large' />
         </IconButton>
         <DialogTitle variant='h5'>Select Assignment's Option</DialogTitle>

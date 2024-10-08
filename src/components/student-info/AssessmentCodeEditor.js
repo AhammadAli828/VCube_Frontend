@@ -1,143 +1,256 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 import CodeEditor from './CodeEditor';
 import CodingQuestionPage from './CodingQuestionPage';
+import { StudentsContext } from '../api/students';
+import { DateTime } from '../date-time';
 
 export const handleFullScreen = () => {
     const editor = document.querySelector('.fullScreen');
-    if(!editor)return;
-    if (editor.requestFullscreen) {
-      editor.requestFullscreen().catch((error) => {
-          console.error("Failed to enter fullscreen:", error);
-      });
-    } else if (editor.webkitRequestFullscreen) {
-        editor.webkitRequestFullscreen().catch((error) => {
-            console.error("Failed to enter fullscreen:", error);
-        });
-    } else if (editor.mozRequestFullScreen) {
-        editor.mozRequestFullScreen().catch((error) => {
-            console.error("Failed to enter fullscreen:", error);
-        });
-    } else if (editor.msRequestFullscreen) {
-        editor.msRequestFullscreen().catch((error) => {
+    if (!editor) return;
+
+    const requestFullscreen = editor.requestFullscreen || editor.webkitRequestFullscreen || editor.mozRequestFullScreen || editor.msRequestFullscreen;
+    
+    if (requestFullscreen) {
+        requestFullscreen.call(editor).catch((error) => {
             console.error("Failed to enter fullscreen:", error);
         });
     }
-  }
+};
 
 export const handleExitFullScreen = () => {
-    if (document.exitFullscreen) {
-        document.exitFullscreen().catch((error) => {
+    const exitFullscreen = document.exitFullscreen || 
+                          document.webkitExitFullscreen || 
+                          document.mozCancelFullScreen || 
+                          document.msExitFullscreen;
+
+    if (exitFullscreen) {
+        exitFullscreen.call(document).catch((error) => {
             console.error("Failed to exit fullscreen:", error);
         });
-    } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen().catch((error) => {
-            console.error("Failed to exit fullscreen:", error);
-        });
-    } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen().catch((error) => {
-            console.error("Failed to exit fullscreen:", error);
-        });
-    } else if (document.msExitFullscreen) {
-        document.msExitFullscreen().catch((error) => {
-            console.error("Failed to exit fullscreen:", error);
-        });
+    } else {
+        console.warn("Fullscreen API is not supported in this browser.");
     }
-  }
+};
 
-const AssessmentCodeEditor = ({ isOpen, setIsOpen, stdId, configs, handleShowSnackbar, fetchStdData, solveAssessmentData, name, course, batchName, isUser }) => {
-  const results = useRef(null);
-  const [tabValue, setTabValue] = useState(0);
-  const [resultPopUp, setResultPopUp] = useState(false);
-  const [hideQuestion, setHideQuestion] = useState(false);
-  const [full_Screen, setFull_Screen] = useState(true);
-  const [popUp, setPopUp] = useState(false);
-  const [timeoutId, setTimeoutId] = useState(null);
-  const [seconds, setSeconds] = useState(10);
+const AssessmentCodeEditor = ({ isOpen, setIsOpen, stdId, handleShowSnackbar, solveAssessmentData, name, phone, course, batchName, isUser }) => {
+    const { fetchAssignmentResults, patchAssignmentResults } = useContext(StudentsContext);
+    const results = useRef(null);
+    const [tabValue, setTabValue] = useState(0);
+    const [resultPopUp, setResultPopUp] = useState(false);
+    const [hideQuestion, setHideQuestion] = useState(false);
+    const [full_Screen, setFull_Screen] = useState(true);
+    const [popUp, setPopUp] = useState(false);
+    const [timeoutId, setTimeoutId] = useState(null);
+    const [seconds, setSeconds] = useState(10);
+    const weekly_Assignment = sessionStorage.getItem('Weekly Assignment');
+    const [questions_Data, setQuestions_Data] = useState(weekly_Assignment === 'True' || weekly_Assignment=== 'Past' ? solveAssessmentData[0] : solveAssessmentData);
+    const [time_Up, setTime_Up] = useState(false);
+    const [assignmentScore, setAssignmentScore] = useState({});
+    const values = Object.values(assignmentScore);
+    const score_Sum = values.reduce((acc, value) => acc + value, 0);
+    const score_Length = Array.isArray(solveAssessmentData) ? solveAssessmentData.length : 0;
 
-    const startTimeout = () => {
-      setSeconds(10);
-      if (timeoutId) {
-          clearTimeout(timeoutId);
-      }
-      const id = setTimeout(() => {
-          setIsOpen(false);
-          setPopUp(false);
-      }, 11000);
-      setTimeoutId(id);
-    };
-
-    useEffect(() => {
-      const handleFullscreenChange = () => {
-          if (document.fullscreenElement) {
-              setFull_Screen(true);
-              clearTimeout(timeoutId);
-              setPopUp(false);
-          } else {
-              setFull_Screen(false);
-              setPopUp(true);
-              startTimeout();
-          }
-      };
-
-      document.addEventListener('fullscreenchange', handleFullscreenChange);
-
-      return () => {
-          document.removeEventListener('fullscreenchange', handleFullscreenChange);
-          if (timeoutId) {
-              clearTimeout(timeoutId);
-          }
-      };
-    }, [timeoutId]);
+    const postResults = async () => {
+        const getData = await fetchResults();
+        getData['Score'] = score_Sum > 0 && score_Length > 0 ? (score_Sum / (score_Length * 100)) * 100 : 0;
+        getData['Status'] = 'Solved';
+        getData['Time'] = sessionStorage.getItem('Assignment_Time');
+        const res = await patchAssignmentResults(getData);
+        if (res && res.message){
+            return false;
+        }else if(res === true){
+            return true;
+        }
+    }
 
     useEffect(() => {
-      const handleKeydown = (e) => {
-          if (e.key === 'Meta'){
-              handleExitFullScreen();
-          }
-      };
+        const handleBeforeUnload = () => {
+            if(isUser === 'Student' && weekly_Assignment === 'True'){
+                sessionStorage.setItem('Reloaded_In_Assignment','True');
+                sessionStorage.setItem('Reloaded_Assignment_Data',JSON.stringify(solveAssessmentData));
+            }
+        };
+        const handleScreenChange = (event) => {
+            if (
+                event.key === "Escape" || 
+                event.key === "F11" || 
+                (event.ctrlKey && event.key === "f") || 
+                (event.metaKey && event.key === "f") || 
+                (event.metaKey && event.shiftKey && event.key === "F") ||
+                event.metaKey
+            ) {
+                handleExitFullScreen();
+            }
+        }
 
-      document.addEventListener('keydown', handleKeydown);
-
-      return () => {
-          document.removeEventListener('keydown', handleKeydown);
-      };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('keydown', handleScreenChange);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('keydown', handleScreenChange);
+        };
     }, []);
 
-    useEffect(()=>{
-      if (popUp)setTimeout(()=>{setSeconds((pre)=>pre-=1)},1000);
-    },[seconds,popUp])
+    useEffect(() => {
+        const enterFullScreen = () => {
+            if (isOpen) {
+                setTimeout(() => {
+                    handleFullscreenChange();
+                    sessionStorage.removeItem('Reloaded_In_Assignment');
+                    sessionStorage.removeItem('Reloaded_Assignment_Data');
+                }, 100);
+            }
+        };
+        enterFullScreen();
+    }, [isOpen]);
 
+    const setItem = async () => {
+        if(isUser === 'Student' && weekly_Assignment === 'True'){
+            const getData = await fetchResults();
+            if(!getData)return;
+            getData.Status = 'Disqualified';
+            const patch = await patchAssignmentResults(getData);
+            if (patch === true){
+                handleShowSnackbar('warning','You are disqualified. Your participation has been revoked.');
+            }else{
+                handleShowSnackbar('error','Something went wrong. Please try again later.');
+            }
+        }
+    }
 
-  return (
+    const fetchResults = async () => {
+        const res = await fetchAssignmentResults(stdId);
+        if (res && res.message){
+            handleShowSnackbar('error','Something went wrong. Please try again later.');
+            return null;
+        }else if(res){
+            const getData = Array.isArray(res) && res.find((data)=>
+                data.StudentId === stdId && 
+                data.Name === `${name}~${phone}` &&
+                data.Course === course &&
+                data.BatchName === batchName &&
+                data.Date === DateTime().split(' ')[0]
+            )
+            return getData ? getData : null;
+        }
+    }
+
+    const updateScore = (key, score) => {
+        if (assignmentScore && assignmentScore[key] !== undefined && assignmentScore[key] >= score)return;
+        setAssignmentScore(prevScores => ({
+            ...prevScores,
+            [key]: score
+        }));
+    };
+
+    const startTimeout = () => {
+    setSeconds(10);
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+    }
+    const id = setTimeout(async () => {
+        isUser === 'Student' && await setItem();
+        setIsOpen(false);
+        setPopUp(false);
+    }, 11000);
+    setTimeoutId(id);
+    };
+
+    const handleFullscreenChange = () => {
+        if (document.fullscreenElement) {
+            setFull_Screen(true);
+            clearTimeout(timeoutId);
+            setPopUp(false);
+        } else {
+            setFull_Screen(false);
+            setPopUp(true);
+            startTimeout();
+        }
+    };
+    
+    useEffect(() => {
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            if (timeoutId) {
+            clearTimeout(timeoutId);
+            }
+        };
+        }, [timeoutId]);
+
+        useEffect(() => {
+        let intervalId;
+
+        if (popUp) {
+            intervalId = setInterval(() => {
+            setSeconds(prev => {
+                if (prev > 0) {
+                return prev - 1;
+                } else {
+                clearInterval(intervalId);
+                return 0;
+                }
+            });
+            }, 1000);
+        }
+
+        return () => {
+            if (intervalId) {
+            clearInterval(intervalId);
+            }
+        };
+    }, [popUp]);
+
+    useEffect(() => {
+    if (!popUp) {
+        setSeconds(10);
+    }
+    }, [popUp]);
+
+    const handleExit = async () => {
+        isUser === 'Student' && await setItem();
+        setIsOpen(false);
+        setPopUp(false);
+        setSeconds(10);
+    }
+
+    return (
     <>
     <Dialog fullScreen sx={{zIndex : '700'}} open={isOpen}>
         <DialogContent className='fullScreen flex items-center justify-between bg-gray-200' sx={{padding : 0 }}>
-            <CodingQuestionPage results={results.current} questionData={solveAssessmentData} tabValue={tabValue} setTabValue={setTabValue} 
+            <CodingQuestionPage results={results.current} questionData={questions_Data} tabValue={tabValue} setTabValue={setTabValue} 
                                 handleExitFullScreen={handleExitFullScreen} resultPopUp={resultPopUp} setResultPopUp={setResultPopUp} isUser={isUser}
-                                hideQuestion={hideQuestion} setHideQuestion={setHideQuestion} full_Screen={full_Screen} handleFullScreen={handleFullScreen} />
+                                hideQuestion={hideQuestion} setHideQuestion={setHideQuestion} handleFullScreen={handleFullScreen} handleShowSnackbar={handleShowSnackbar}
+                                setQuestions_Data={setQuestions_Data} solveAssessmentData={solveAssessmentData} score={score_Sum > 0 && score_Length > 0 ? (score_Sum / (score_Length * 100)) * 100 : 0}
+                                scoreData={assignmentScore} postResults={postResults} setIsOpen={setIsOpen} time_Up={time_Up} />
             <CodeEditor setResults={results}
-                        test_Cases={solveAssessmentData && JSON.parse(solveAssessmentData.Test_Cases)} 
-                        stdId={stdId} handleShowSnackbar={handleShowSnackbar}
-                        setResultPopUp={setResultPopUp} hideQuestion={hideQuestion}
-                        isSql={solveAssessmentData && JSON.parse(solveAssessmentData.Question).SQL === 'Yes'}
-                        full_Screen={full_Screen} setTabValue={setTabValue} questionId={solveAssessmentData && solveAssessmentData.id}
-                        name={name} course={course} batchName={batchName} isUser={isUser} />
+                        test_Cases={questions_Data && JSON.parse(questions_Data.Test_Cases)}
+                        stdId={stdId} handleShowSnackbar={handleShowSnackbar} setTime_Up={setTime_Up}
+                        setResultPopUp={setResultPopUp} hideQuestion={hideQuestion} assignmentScore={assignmentScore}
+                        isSql={questions_Data && JSON.parse(questions_Data.Question).SQL === 'Yes'}
+                        full_Screen={full_Screen} setTabValue={setTabValue} questionId={questions_Data && questions_Data.id}
+                        name={name} course={course} batchName={batchName} isUser={isUser} updateScore={updateScore} />
         </DialogContent>
     </Dialog>
 
     <Dialog open={popUp}>
-      <DialogTitle variant='h6'>Please use fullscreen mode to complete your assignment.</DialogTitle>
-      <DialogContent>
-        <Typography variant='h4' className='w-full text-center'>{seconds}s</Typography>
-      </DialogContent>
-      <DialogActions>
-        <Button variant='outlined' onClick={()=>{setIsOpen(false);setPopUp(false);setSeconds(10)}}>Exit</Button>
+        <DialogTitle variant='h6'>Please use fullscreen mode to complete your assignment.</DialogTitle>
+        <DialogContent className='w-full h-full flex flex-col items-center justify-center'>
+        {weekly_Assignment === 'True' && <Typography color='error' className='w-full text-start'>
+            If you exit the assignment before completing it,<br/>you will be disqualified,<br/>your submission will not be counted, and you cannot reenter.
+        </Typography>}
+        <Typography sx={{margin : '20px 0'}} >Please go to fullscreen and complete the assignment before the timer ends.</Typography>
+        <Typography variant='h4' className='w-full text-center'>{seconds < 10 ? `0${seconds}` : seconds}s</Typography>
+        </DialogContent>
+        <DialogActions>
+        <Button variant='outlined' onClick={handleExit}>Exit</Button>
         <Button variant='contained' onClick={()=>{handleFullScreen();setPopUp(false);setSeconds(10)}} >Back to Full Screen</Button>
-      </DialogActions>
+        </DialogActions>
     </Dialog>
     </>
-  )
+    )
 }
 
 export default AssessmentCodeEditor;

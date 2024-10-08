@@ -3,7 +3,7 @@ import OfflinePage from '../OfflinePage';
 
 export const OfflineProvider = ({ children }) => {
     const [isOffline, setIsOffline] = useState(false);
-    console.log(isOffline);
+
     useEffect(() => {
         const handleOffline = () => setIsOffline(true);
         const handleOnline = () => setIsOffline(false);

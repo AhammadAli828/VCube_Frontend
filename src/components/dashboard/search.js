@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Box, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
+import { Box, FormControl, InputLabel, Select, MenuItem, Button, Tooltip } from '@mui/material';
 import { AttributionRounded, RefreshRounded } from '@mui/icons-material';
 
-const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, selectedCourse, setSelectedCourse, userCourse, setShortLoading ,setTakeStdAtt, refreshData }) => { 
+const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, selectedCourse, setSelectedCourse, userCourse, setShortLoading ,setTakeStdAtt, refreshData, setStdAttViewType, stdAttViewType }) => { 
     const [refreshed, setRefreshed] = useState(false);
-    const [timer, setTimer] = useState(10);
+    const [timer, setTimer] = useState(30);
     
     useEffect(()=>{
       setSelectedBatch(sessionStorage.getItem('SelectedBatch'));
@@ -25,12 +25,12 @@ const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, 
       if (refreshed) {
         timerId = setTimeout(() => {
           setTimer((prev) => prev - 1);
-        }, 1000);              
+        }, 1000);
       }
   
       if (timer === 0) {
         setRefreshed(false);
-        setTimer(10);
+        setTimer(30);
       }
     
       return () => clearTimeout(timerId);
@@ -39,8 +39,10 @@ const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, 
   return (
     <Box className="h-14 mt-4 mb-4 w-[95%] ml-[2.5%] flex items-center justify-between bg-transparent">
       <Button endIcon={!refreshed && <RefreshRounded/>} variant='outlined' onClick={()=>{!refreshed && refreshData();setRefreshed(true)}}>Refresh {refreshed && `in ${timer < 10 ? `0${timer}` : `${timer}`}`}</Button>
+      <Button variant="contained" startIcon={<AttributionRounded />} onClick={()=>setTakeStdAtt(true)}>Take Student Attendance</Button>
+
      {userCourse === 'All' && user === 'Super Admin' && 
-          <FormControl sx={{width : '30%'}} variant='standard'>
+          <FormControl sx={{width : '23%'}} variant='standard'>
           <InputLabel variant='standard' shrink={selectedCourse ? true : false} sx={{fontSize : '20px', color : ''}}>Select Course</InputLabel>
           <Select
             value={selectedCourse}
@@ -61,7 +63,7 @@ const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, 
           </Select>
       </FormControl>}
 
-      <FormControl variant="standard" sx={{width : '30%'}}>
+      <FormControl variant="standard" sx={{width : '23%'}}>
         <InputLabel shrink={selectedBatch ? true : false} sx={{fontSize : '20px', color : ''}}>Select Batch</InputLabel>
         <Select
           value={selectedBatch}
@@ -86,7 +88,10 @@ const Search = ({ user, courseData, batchData, selectedBatch, setSelectedBatch, 
           {selectedCourse && <MenuItem value="All">All Batches</MenuItem>}
         </Select>
       </FormControl>
-      <Button variant="contained" startIcon={<AttributionRounded />} onClick={()=>setTakeStdAtt(true)}>Take Student Attendance</Button>
+
+      <Tooltip title='Toogle Student Attendance View' arrow>
+        <Button variant='outlined' sx={{width : '18%'}} onClick={()=>setStdAttViewType(stdAttViewType === 'Class' ? 'Weekly Test' : stdAttViewType === 'Weekly Test' ? 'Interview' : 'Class')} >{stdAttViewType} Attendance</Button>
+      </Tooltip>
     </Box>
   )
 };

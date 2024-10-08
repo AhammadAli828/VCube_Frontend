@@ -4,7 +4,7 @@ import { RefreshRounded } from '@mui/icons-material';
 
 const SelectOptions = ({ selectedCourse, setSelectedCourse, selectedBatch, setSelectedBatch, courseData, batchData, setShortLoading, refreshData }) => {
   const [refreshed, setRefreshed] = useState(false);
-  const [timer, setTimer] = useState(10);
+  const [timer, setTimer] = useState(30);
 
   useEffect(()=>{
     setSelectedBatch(sessionStorage.getItem('SelectedBatch'));
@@ -30,7 +30,7 @@ const SelectOptions = ({ selectedCourse, setSelectedCourse, selectedBatch, setSe
 
     if (timer === 0) {
       setRefreshed(false);
-      setTimer(10);
+      setTimer(30);
     }
   
     return () => clearTimeout(timerId);

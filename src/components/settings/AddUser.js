@@ -104,7 +104,6 @@ const AddNewUser = ({ handleShowSnackbar, setIsLoading, setTabValue }) => {
                 handleDataCheckError(res);
             }
         } catch (error) {
-            console.log(error)
             handleShowSnackbar('error', `An unexpected error occurred While CHeking details. ${error}`);
         }
     };
@@ -163,7 +162,6 @@ const AddNewUser = ({ handleShowSnackbar, setIsLoading, setTabValue }) => {
     };
     
     const handleUserCheckError = (res) => {
-        console.log(res);
         const status = res.response ? res.response.status : res.status;
         switch (status) {
             case 226:

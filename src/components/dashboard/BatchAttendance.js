@@ -104,11 +104,10 @@ const BatchAttendance = ({ isOpen, setIsOpen, selectedCourse, type, handleShowSn
         }
     };
     
-
   return (
     <Dialog open={isOpen} sx={{zIndex : '700'}}>
         <img src='/images/V-Cube-Logo.png' alt='' width='20%' className='ml-[40%]'/>
-        <DialogTitle variant='h5'>{type} Attendance</DialogTitle>
+        <DialogTitle variant='h5'>{type === 'Mock Test' ? 'Weekly Test' : type} Attendance</DialogTitle>
         <IconButton className='top-2 right-2' sx={{position : 'absolute'}} onClick={handleClose}>
             <CloseRounded sx={{fontSize : '35px'}} />
         </IconButton>

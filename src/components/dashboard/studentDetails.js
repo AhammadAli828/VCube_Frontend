@@ -1,20 +1,22 @@
 import React, { useContext, useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Avatar, IconButton } from '@mui/material';
+import { Box, Avatar, IconButton, Dialog, DialogTitle, DialogContent, Button, Typography, DialogActions } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import * as XLSX from 'xlsx';
 import { useNavigate } from 'react-router-dom';
 import { StudentsContext } from '../api/students';
-import { CancelRounded, CheckCircleRounded, Visibility } from '@mui/icons-material';
+import { CancelRounded, CheckCircleRounded, CloseRounded, Visibility } from '@mui/icons-material';
 import StudentAttendanceForm from './StudentAttendanceForm';
 import { DateTime } from '../date-time';
 import { CustomNoRowsOverlay } from '../DatagridOverlay';
 
 
-const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selectedBatch, setIsLoading, handleShowSnackbar, importData, setImportData, takeStdAtt, setTakeStdAtt, openStdAttDialog, setOpenStdAttDialog, refresh }) => {
+const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selectedBatch, setIsLoading, handleShowSnackbar, importData, setImportData, takeStdAtt, setTakeStdAtt, openStdAttDialog, setOpenStdAttDialog, refresh, stdAttViewType, refreshData }) => {
   const { fetchStudentsData, getStudentAttendanceByCourse } = useContext(StudentsContext);
   const [selectedId, setSelectedId] = useState([]);
   const [studentAttData, setStudentAttData] = useState([]);
   const [stdData, setStdData] = useState([]);
+  const [watchImg, setWatchImg] = useState(null);
+  const [watchName, setWatchName] = useState(null);
   const navigate = useNavigate();
   const dateTime = DateTime().split(' ');
 
@@ -44,7 +46,6 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
   
   useEffect(() => {
     if (selectedCourse && selectedBatch) {
-      console.log('REFRESHED');
       fetchStdData();
     }
   }, [setIsLoading, selectedCourse, selectedBatch, refresh]);
@@ -72,7 +73,7 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
   const chkStdAtt = (data) => {
     return Array.isArray(studentAttData) && studentAttData.some(stdAtt=>(
       stdAtt.StudentId === data.id && stdAtt.BatchName === data.BatchName &&
-      `${data.Name}~${data.Phone}` === stdAtt.Name && stdAtt.Date === dateTime[0] && stdAtt.Attendance_Type === 'Class'
+      `${data.Name}~${data.Phone}` === stdAtt.Name && stdAtt.Date === dateTime[0] && stdAtt.Attendance_Type === (stdAttViewType === 'Weekly Test' ? 'Mock Test' : stdAttViewType)
     ));
   }
 
@@ -90,7 +91,7 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
       stdAtt.Date === dateTime[0]  && stdAtt.Attendance_Type === 'Interview'
     ));
 
-    return !(classAtt && study && interview);
+    return !((classAtt && study && interview) || data.status !== 'Active');
   }
 
   
@@ -101,6 +102,10 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
     setTimeout(() => { navigate(`/vcube/student-info/${uniqueURL.substring(60,90)}`); }, 1000);
   }, [studentsData, navigate, setIsLoading]);
 
+  const handleImage = (id, image, name) => {
+    setWatchImg(image);
+    setWatchName(`${id}~${name}`);
+  }
 
   const columns = useMemo(() => [
     { field: 'id', headerName: 'ID', width: 50, headerClassName: 'text-lg' },
@@ -111,7 +116,9 @@ const StudentDetails = ({ studentsData, setStudentsData, selectedCourse, selecte
       sortable: false,
       disableColumnMenu: true,
       renderCell: (params) => (
-        <Avatar alt={params.row.name} src={params.row.image} sx={{ marginTop: '5px', padding: '0' }} />
+        <IconButton onClick={()=>handleImage(params.row.id, params.row.image, params.row.name)}  sx={{ width : '100%', height : '100%' }}>
+          <Avatar alt={params.row.name} src={params.row.image} />
+        </IconButton>
       ),
     },
     { field: 'name', headerName: 'Name', width: 200, headerClassName: 'text-lg' },
@@ -163,6 +170,7 @@ const rows = useMemo(() => {
             ? JSON.parse(data.Educational_Info).PG_Passed_Year
             : JSON.parse(data.Educational_Info).Degree_Passed_Year,
         attendance: chkStdAtt(data),
+        status: data.Status 
       });
     }
     return acc;
@@ -218,12 +226,17 @@ const rows = useMemo(() => {
     setImportData(false);
   },[importData])
 
+  const getRowClassName = (params) => {
+    return params.row.status !== 'Active' ? 'highlight-row' : '';
+  };
+
   return (
     <Box className="relative w-[96%] max-h-[61%] h-[61%] ml-[2%] bg-white">
       {rows.length > 0 && <img src='/images/V-Cube-Logo.png' alt='' width='50%' className='absolute top-0 left-[25%] h-full object-scale-down opacity-20' />}
       <DataGrid
         rows={rows}
         columns={columns}
+        getRowClassName={getRowClassName}
         sx={{
           cursor : 'pointer',
         }}
@@ -239,7 +252,18 @@ const rows = useMemo(() => {
         disableRowSelectionOnClick
         onRowSelectionModelChange={(newSelection)=>setSelectedId(newSelection)}
       />
-      <StudentAttendanceForm isOpen={openStdAttDialog} setIsOpen={setOpenStdAttDialog} stdData={stdData} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} fetchStdData={fetchStdData} studentAttData={studentAttData} studentsData={studentsData} selectedCourse={selectedCourse} selectedBatch={selectedBatch} />
+      <StudentAttendanceForm isOpen={openStdAttDialog} setIsOpen={setOpenStdAttDialog} stdData={stdData} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} fetchStdData={fetchStdData} studentAttData={studentAttData} studentsData={studentsData} selectedCourse={selectedCourse} selectedBatch={selectedBatch} refreshData={refreshData} />
+      
+      <Dialog open={watchImg !== null && watchName !== null} onClose={()=>{setWatchImg(null);setWatchName(null)}} sx={{zIndex : '700'}}>
+        <DialogContent className='flex flex-col items-center justify-between' sx={{padding : '10px'}}>
+          <Typography variant='h4' className='w-full text-center'>{watchName !== null && watchName.split('~')[1]}</Typography>
+          <img src={watchImg} className='mt-5 mb-5 rounded-md' alt='' />
+        </DialogContent>
+        <DialogActions>
+          <Button sx={{width : '100%'}} variant='outlined' endIcon={<CloseRounded/>} onClick={()=>{setWatchImg(null);setWatchName(null)}} >Close</Button>
+          <Button sx={{width : '100%'}} variant='outlined' endIcon={<Visibility/>} onClick={()=>handleRowClick(watchName !== null && watchName.split('~')[0])}>View</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 };

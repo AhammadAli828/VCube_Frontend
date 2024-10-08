@@ -6,7 +6,7 @@ export const WindowResize = ({ children }) => {
 
     useEffect(() => {
         const handleResize = () => {
-            setScreenSizeOk(window.innerWidth >= 800 && window.innerHeight >= 600);
+            setScreenSizeOk(window.innerWidth >= 888 && window.innerHeight >= 555);
         };
         window.addEventListener('resize', handleResize);
         handleResize();

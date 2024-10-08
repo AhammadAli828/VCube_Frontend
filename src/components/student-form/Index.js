@@ -8,7 +8,7 @@ import LoadingSkeleton from '../skeleton';
 import CustomDialog from '../dashboard/Dialog';
 import * as XLSX from 'xlsx';
 
-const StudentForm = ({ open, setOpen, selectedCourse, selectedBatch, isUser }) => {
+const StudentForm = ({ open, setOpen, selectedCourse, selectedBatch, isUser, refreshData }) => {
     const { enqueueSnackbar } = useSnackbar();
     const [fileData, setFileData] = useState(null);
     const [file, setFile] = useState(null);
@@ -91,10 +91,10 @@ const StudentForm = ({ open, setOpen, selectedCourse, selectedBatch, isUser }) =
     </Paper>
     <Box className="h-full flex flex-col items-center justify-center">
         {uploadManually ? (
-            <SimpleStepper setUploadManually={setUploadManually} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} setOpenDialog={setOpenDialog} setIsOpen={setOpen} setDialogMsg={setDialogMsg} selectedCourse={selectedCourse} />
+            <SimpleStepper setUploadManually={setUploadManually} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} setOpenDialog={setOpenDialog} setIsOpen={setOpen} setDialogMsg={setDialogMsg} selectedCourse={selectedCourse} refreshData={refreshData} />
         ) : (
             <DragAndDropList setUploadManually={setUploadManually} onDrop={handleDrop} fileData={fileData} fileName={file && file.name} fileError={fileError} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} loading={loading} 
-                selectedCourse={selectedCourse} selectedBatch={selectedBatch} isUser={isUser} handleClose={handleClose} />
+                selectedCourse={selectedCourse} selectedBatch={selectedBatch} isUser={isUser} handleClose={handleClose} refreshData={refreshData} />
         )
         }
     </Box>

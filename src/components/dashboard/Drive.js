@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import StorageVault from './StorageVault';
-import DrivePin from './DrivePin';
+import React, { lazy, useEffect, useState } from 'react';
 import { UserDetails } from '../UserDetails';
 import { DateTime } from '../date-time';
+
+const StorageVault = lazy(()=> import('./StorageVault'));
+const DrivePin = lazy(()=> import('./DrivePin'));
 
 const Drive = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading }) => {
   const [isValidated, setIsValidated] = useState(false);

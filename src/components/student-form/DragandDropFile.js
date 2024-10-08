@@ -5,7 +5,7 @@ import { CloudUploadOutlined, ArrowForward, TouchAppRounded, CheckCircleRounded,
 import { StudentsContext } from '../api/students';
 import { BatchContext } from '../api/batch';
 
-const DragDropUpload = ({ onDrop, fileData, fileName, fileError, setUploadManually, handleShowSnackbar, setIsLoading, loading, selectedCourse, selectedBatch, isUser, handleClose }) => {
+const DragDropUpload = ({ onDrop, fileData, fileName, fileError, setUploadManually, handleShowSnackbar, setIsLoading, loading, selectedCourse, selectedBatch, isUser, handleClose, refreshData }) => {
   const { fetchStudentsData, postBulkStudentData, deleteBulkStudentData } = useContext(StudentsContext);
   const { fetchBatchData } = useContext(BatchContext);
   const [isFileError, setIsFileError] = useState(false);
@@ -134,6 +134,7 @@ const DragDropUpload = ({ onDrop, fileData, fileName, fileError, setUploadManual
     if(res && res.message){
       handleShowSnackbar('error',res.message);
     }else if (res === true){
+      refreshData();
       handleShowSnackbar('success','Student Data Imported Successfully.');
       handleClose();
     }

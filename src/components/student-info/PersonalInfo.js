@@ -110,10 +110,10 @@ const PersonalInfo = ({ user, stdId, student_Details, location, access, status, 
                             <Typography variant='p' className='flex items-center'><strong>Status</strong> : <span className={status === 'Active' ? 'text-green-700 ml-2' : 'text-red-700 ml-2'}>{status}</span>
                                 {status === 'Active' ? <CheckCircleRounded sx={{color : 'green', marginLeft : '5px'}} /> : <CancelRounded sx={{color : '#b91c1c', marginLeft : '5px'}} />}</Typography>
                             
-                            <Typography onMouseOver={()=>setEmailHover(true)} onMouseLeave={()=>setEmailHover(false)} ><Email className='text-gray-500' /> &nbsp;
-                                {!emailEdit ? student_Details.Email : <input value={updatedEmail} onChange={(e)=>setUpdatedEmail(e.target.value)} onKeyDown={(e)=>{if(e.key === 'Enter')handleEmailSubmit()}} className='w-[80%] border-[1px] rounded-sm' />} 
-                                <IconButton onClick={()=>{setEmailEdit(!emailEdit);setUpdatedEmail(student_Details.Email)}} size='small' sx={{visibility : hoverEmail || emailEdit ? 'visible' : 'hidden'}}>
-                                    {emailEdit ? <CloseRounded  fontSize='small' className='text-gray-500 mb-1' /> : <EditRounded fontSize='small' className='text-gray-500 mb-1' />}
+                            <Typography onMouseOver={()=>user !== 'Student' && setEmailHover(true)} onMouseLeave={()=>user !== 'Student' && setEmailHover(false)} ><Email className='text-gray-500' /> &nbsp;
+                                {!emailEdit ? student_Details.Email : <input value={updatedEmail} onChange={(e)=>setUpdatedEmail(e.target.value)} onKeyDown={(e)=>{if(e.key === 'Enter' && user !== 'Student')handleEmailSubmit()}} className='w-[80%] border-[1px] rounded-sm' />} 
+                                <IconButton onClick={()=>{if(user !== 'Student'){setEmailEdit(!emailEdit);setUpdatedEmail(student_Details.Email)}}} size='small' sx={{visibility : hoverEmail || emailEdit ? 'visible' : 'hidden'}}>
+                                    {user !== 'Student' && (emailEdit ? <CloseRounded  fontSize='small' className='text-gray-500 mb-1' /> : <EditRounded fontSize='small' className='text-gray-500 mb-1' />)}
                                 </IconButton>
                             </Typography>
                             

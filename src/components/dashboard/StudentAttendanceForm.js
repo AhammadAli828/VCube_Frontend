@@ -5,7 +5,7 @@ import { DateTime } from '../date-time';
 import { StudentsContext } from '../api/students';
 import { BatchAttendanceContext } from '../api/batch-attendance';
 
-const StudentAttendanceForm = ({ isOpen, setIsOpen, stdData, handleShowSnackbar, setIsLoading, fetchStdData, studentAttData, studentsData, selectedCourse, selectedBatch }) => {
+const StudentAttendanceForm = ({ isOpen, setIsOpen, stdData, handleShowSnackbar, setIsLoading, fetchStdData, studentAttData, selectedCourse, selectedBatch, refreshData }) => {
     const { postStudentAttendance } = useContext(StudentsContext);
     const { fetchBatchAttendanceDataByCourse } = useContext(BatchAttendanceContext);
     const [checkedList, setCheckedList] = useState([]);
@@ -52,6 +52,7 @@ const StudentAttendanceForm = ({ isOpen, setIsOpen, stdData, handleShowSnackbar,
             if(res && res.message){
                 handleShowSnackbar('error',res.message);
             }else{
+                refreshData();
                 handleShowSnackbar('success','Student Attendance added successfully.');
                 handleClose();
             }
@@ -76,15 +77,6 @@ const StudentAttendanceForm = ({ isOpen, setIsOpen, stdData, handleShowSnackbar,
         const res = Array.isArray(batchAttData.current) && batchAttData.current.some((batch)=>(batch.BatchName === selectedBatch && batch.Date === dateTime[0] && batch.Attendance_Type === type));
         return res;
     };
-
-    useEffect(()=>{
-        if(isOpen && selectedBatch){
-            if(!chkBatchAtt('Class')){
-                handleShowSnackbar('error',"Please add today's batch attendance. otherwise, students will not be able to have their Attendance marked.");
-                handleClose();
-            };
-        }
-    },[selectedBatch, isOpen])
 
     const handleClose = () => {
         setCheckedList([]);

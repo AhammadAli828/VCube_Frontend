@@ -3,8 +3,7 @@ import { Box, Button, Card, CircularProgress, Paper, SpeedDial, SpeedDialAction,
 import { Editor } from '@monaco-editor/react';
 import { ExecuteCodeContext } from '../api/ExecuteCode';
 import styled from 'styled-components';
-import { CancelRounded, CheckCircleRounded, Close, ExpandLessRounded, ExpandMoreRounded, Looks3Rounded, Looks4Rounded, Looks5Rounded, Looks6Rounded, LooksOneRounded, LooksTwoRounded, MenuRounded, ScreenLockLandscape } from '@mui/icons-material';
-import StudentConfigForm from './StudentCongifForm';
+import { CancelRounded, CheckCircleRounded, Close, ExpandLessRounded, ExpandMoreRounded, Looks3Rounded, Looks4Rounded, Looks5Rounded, Looks6Rounded, LooksOneRounded, LooksTwoRounded } from '@mui/icons-material';
 import { StudentsContext } from '../api/students';
 import { DateTime } from '../date-time';
 import DOMPurify from 'dompurify';
@@ -19,7 +18,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     },
 }));
 
-const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResultPopUp, hideQuestion, isSql, full_Screen, setTabValue, questionId, name, course, batchName, isUser }) => {
+const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResultPopUp, hideQuestion, isSql, full_Screen, setTabValue, questionId, name, course, batchName, isUser, updateScore, setTime_Up, assignmentScore }) => {
     const { runCode, executeCode } = useContext(ExecuteCodeContext);
     const { getStudentAttendanceById, postStudentAttendance } = useContext(StudentsContext);
     const code = useRef({
@@ -34,6 +33,7 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
         c: '// Write your C code here'
     });
     const [language, setLanguage] = useState(isSql ? 'sql' : 'python');
+    const weekly_Assignment = sessionStorage.getItem('Weekly Assignment');
     const [size, setSize] = useState(18); 
     const [input, setInput] = useState('');
     const output = useRef('');
@@ -42,7 +42,7 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
     const [sqlResults, setSqlResults] = useState('');
     const [keys, setKeys] = useState([]);
     const [tab_Value, set_Tab_Value] = useState(0);
-    const [hours, setHours] = useState(0);
+    const [hours, setHours] = useState(weekly_Assignment === 'True' || weekly_Assignment === 'Past' ? 1 : 0);
     const [minutes, setMinutes] = useState(0);
     const [seconds, setSeconds] = useState(0);
     const [loading1, setLoading1] = useState(false);
@@ -161,11 +161,15 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
                 setResults.current = {'status' : 'Failed', 'message' : res.response ? res.response.data.error : res.message};
             }else if(res){
                 setResults.current = res.data;
-                if(res.data.all_tests_passed === true && isUser === 'Student')SubmitAssignment();
+                const resul = res.data.results.filter((data)=>data.status === 'pass');
+                if(weekly_Assignment === 'True' || weekly_Assignment === 'Past')updateScore(questionId, (resul.length / test_Cases.length) * 100);
+                if(res.data.all_tests_passed === true && isUser === 'Student' && !(weekly_Assignment === 'True' || weekly_Assignment === 'Past')){
+                    SubmitAssignment();
+                }
             }
         }
         setResultPopUp(true);
-        setTabValue(1);
+        !weekly_Assignment === 'True' && setTabValue(1);
         setSubmitted(true);
     };
 
@@ -178,7 +182,7 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
             Course : course,
             BatchName : batchName,
             Date : DateTime().split(' ')[0],
-            Attendance_Type : `Assignment~${questionId}~${hours < 10 ? `0${hours}` : hours}:${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds }`
+            Attendance_Type : `${weekly_Assignment === 'True' ? 'Weekly Assignment' : 'Assignment'}~${questionId}~${hours < 10 ? `0${hours}` : hours}:${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds }`
         }
         const res = await postStudentAttendance(data);
         fetchData();
@@ -188,24 +192,33 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
     }
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setSeconds(prevSeconds => {
-                if (prevSeconds === 59) {
-                    setMinutes(prevMinutes => {
-                        if (prevMinutes === 59) {
-                            setHours(prevHours => prevHours + 1);
-                            return 0;
-                        }
-                        return prevMinutes + 1;
-                    });
-                    return 0;
-                }
-                return prevSeconds + 1;
-            });
+    let totalSeconds = hours * 3600 + minutes * 60 + seconds;
+    let interval;
+    
+    if (weekly_Assignment === 'True' || weekly_Assignment === 'Past') {
+        if(hours === 0 && minutes === 0 && seconds === 0)setTime_Up(true);
+        interval = setInterval(() => {
+        if (totalSeconds > 0) {
+            totalSeconds -= 1;
+            setHours(Math.floor(totalSeconds / 3600));
+            setMinutes(Math.floor((totalSeconds % 3600) / 60));
+            setSeconds(totalSeconds % 60);
+            sessionStorage.setItem('Assignment_Time',`${totalSeconds}`);
+        } else {
+            clearInterval(interval);
+        }
         }, 1000);
+    } else {
+        interval = setInterval(() => {
+        totalSeconds += 1;
+        setHours(Math.floor(totalSeconds / 3600));
+        setMinutes(Math.floor((totalSeconds % 3600) / 60));
+        setSeconds(totalSeconds % 60);
+        }, 1000);
+    }
+    return () => clearInterval(interval);
+    }, [hours, minutes, seconds, weekly_Assignment, setTime_Up]);
 
-        return () => clearInterval(interval);
-    }, [seconds]);
 
     useEffect(()=>{
         isUser === 'Student' && document.addEventListener('keydown',(e)=>{
@@ -241,65 +254,69 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
         { icon: <Looks5Rounded />, name: '30px', onClick: () => setSize(30) },
         { icon: <Looks6Rounded />, name: '35px', onClick: () => setSize(35) },
     ];
-  
 
-  return (
-    <Box className={`${hideQuestion ? 'w-[70%]' : 'w-1/2'} h-full bg-white rounded-md pt-1 pr-2 pl-2 border-2 border-gray-200`}>
+    return (
+    <Box className={`${hideQuestion ? 'w-[70%]' : 'w-1/2'} ${(minutes === 29) || minutes === 4 || minutes === 0 ? 'blink-background' : ''} h-full bg-white rounded-md pt-1 pr-2 pl-2 border-2 border-gray-200`}>
         <Box className='relative flex items-center justify-center h-12'>
             <SpeedDial
             ariaLabel="Menu SpeedDial"
             sx={{
-              bgcolor: 'transparent',
-              position: 'absolute',
-              left: '0px',
-              top: '-2px',
-              zIndex: '100',
-              '& .MuiSpeedDial-fab': {
+                bgcolor: 'transparent',
+                position: 'absolute',
+                left: '0px',
+                top: '-2px',
+                zIndex: '100',
+                '& .MuiSpeedDial-fab': {
                 bgcolor: 'transparent',
                 color: 'black',
                 width : '45px',
                 height : '45px',
                 '&:hover': {
-                  bgcolor: 'transparent',
+                    bgcolor: 'transparent',
                 },
-              },
+                },
             }}
             
             icon={<SpeedDialIcon sx={{ display : 'flex', alignItems : 'center', justifyContent : 'center' }} 
                 icon={<img src={`/images/${language}-logo.png`} alt='' width={language === 'python' || language === 'javascript' ? '25px' : '30px'} />} 
                 openIcon={<Close sx={{ fontSize: '30px' }} className='text-gray-500' />} />}
             direction='down'
-          >
+            >
             {actions.map((action) => (
-              <SpeedDialAction
+                <SpeedDialAction
                 key={action.name}
                 icon={action.icon}
                 tooltipTitle={action.name}
                 onClick={action.onClick}
                 arrow
-              />
+                />
             ))}
-          </SpeedDial>
-            <Box className='border-[1px] border-gray-400 flex items-center justify-center h-[40px] w-[20%] rounded-md' sx={{fontSize : '18px'}}>
-                {formatTime(hours)} : {formatTime(minutes)} : {formatTime(seconds)}
+            </SpeedDial>
+            <Box className={`relative border-[1.50px] ${weekly_Assignment === 'True' || weekly_Assignment === 'Past' ? minutes < 15 ? 'border-red-400' : minutes < 30 ? 'border-yellow-400' : minutes < 45 ? 'border-orange-400' : 'border-green-400' : 'border-gray-400'} 
+                ${weekly_Assignment === 'True' || weekly_Assignment === 'Past' ? minutes < 15 ? 'text-red-700' : minutes < 30 ? 'text-yellow-700' : minutes < 45 ? 'text-orange-700' : 'text-green-700' : 'text-black'}
+                flex items-center justify-center h-[40px] w-[20%] rounded-md`} sx={{fontSize : '18px'}}>
+                <Box className='w-full h-full bg-transparent flex items-center justify-center overflow-hidden' sx={{zIndex : '710'}}>
+                    {formatTime(hours)} : {formatTime(minutes)} : {formatTime(seconds)}
+                </Box>
+                <Box className={`absolute top-0 left-0 h-full rounded-md ${weekly_Assignment === 'True' || weekly_Assignment === 'Past' ? minutes < 6 ? 'bg-red-300' :  minutes < 15 ? 'bg-red-100' : minutes < 30 ? 'bg-yellow-100' : minutes < 45 ? 'bg-orange-100' : 'bg-green-100' : 'bg-white'}`} sx={{zIndex : '705', width : `${Math.floor((minutes / 60) * 100)}%`}}></Box>
             </Box>
             <SpeedDial
             ariaLabel="Menu SpeedDial"
             sx={{
-              bgcolor: 'transparent',
-              position: 'absolute',
-              right: '0px',
-              top: '-2px',
-              zIndex: '100',
-              '& .MuiSpeedDial-fab': {
+                bgcolor: 'transparent',
+                position: 'absolute',
+                right: '0px',
+                top: '-2px',
+                zIndex: '100',
+                '& .MuiSpeedDial-fab': {
                 bgcolor: 'transparent',
                 color: 'black',
                 width : '45px',
                 height : '45px',
                 '&:hover': {
-                  bgcolor: 'transparent',
+                    bgcolor: 'transparent',
                 },
-              },
+                },
             }}
             icon={<SpeedDialIcon sx={{ display : 'flex', alignItems : 'center', justifyContent : 'center' }} 
                 icon={size === 15 ? <LooksOneRounded /> : size === 18 ? <LooksTwoRounded /> : size === 22 ? <Looks3Rounded /> :
@@ -307,17 +324,17 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
                 } 
                 openIcon={<Close sx={{ fontSize: '30px' }} className='text-gray-500' />} />}
             direction='down'
-          >
+            >
             {sizeActions.map((action) => (
-              <SpeedDialAction
+                <SpeedDialAction
                 key={action.name}
                 icon={action.icon}
                 tooltipTitle={action.name}
                 onClick={action.onClick}
                 arrow
-              />
+                />
             ))}
-          </SpeedDial>
+            </SpeedDial>
         </Box>
         <Box className={`w-full ${hideConsole ? 'h-[86%]' : full_Screen ? 'h-[52%]' : 'h-[45%]'} rounded-md overflow-hidden`}>
         <Editor
@@ -439,8 +456,9 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
                     )}
                 </Box>
                 <Box className='relative w-[50%]'>
-                    <Button variant='contained' disabled={loading2} sx={{width : '90%', margin : '0 0 0 15px'}}
-                    onClick={()=>{if(!submitted){setLoading2(true);setTimeout(()=>{execute_Code()},2000)}}}>Submit {submitted ? timer < 10  ? `in 0${timer}` : `in ${timer}` : null}</Button>
+                    <Button variant='contained' sx={{width : '90%', margin : '0 0 0 15px'}}
+                        disabled={(weekly_Assignment === 'True' && hours === 0 && minutes === 0 && seconds === 0) || loading2}
+                        onClick={()=>{if(!submitted){setLoading2(true);setTimeout(()=>{execute_Code()},2000)}}}>Submit {submitted ? timer < 10  ? `in 0${timer}` : `in ${timer}` : null}</Button>
                     {loading2 && (
                     <CircularProgress
                     size={24}
@@ -457,7 +475,7 @@ const CodeEditor = ({ setResults, test_Cases, stdId, handleShowSnackbar, setResu
             </Box>
         </Box>
     </Box>
-  )
+    )
 }
 
 export default CodeEditor;

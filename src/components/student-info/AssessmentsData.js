@@ -1,8 +1,11 @@
 import React, { startTransition, useContext, useEffect, useRef, useState } from 'react';
 import { Avatar, Box, Button, Card, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, Tab, Tabs, Tooltip, Typography } from '@mui/material';
-import { ArrowForwardRounded, CloseRounded, DescriptionRounded } from '@mui/icons-material';
+import { ArrowForwardRounded, CloseRounded, DescriptionRounded, LeaderboardRounded } from '@mui/icons-material';
 import { AssessmentContext } from '../api/Assessment';
 import { StudentsContext } from '../api/students';
+import WeeklyAssignments from './WeeklyAssignments';
+import { months , DateTime } from '../date-time';
+import AssignmentLeaderBoard from './AssignmentLeaderBoard';
 
 export const getMonthsDifference = (startDate) => {
     const endDate = new Date();
@@ -18,7 +21,7 @@ export const getMonthsDifference = (startDate) => {
     return totalMonths + 1;
 }
 
-const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnackbar, setIsLoading, setSolveAssesments, setSolveAssessmentData, stdId, JoiningDate, isUser, configs }) => {
+const AssessmentsData = ({ isOpen, setIsOpen, image, name, phone, course, batchName, handleShowSnackbar, setIsLoading, setSolveAssesments, setSolveAssessmentData, stdId, JoiningDate, isUser, configs }) => {
     const { fetchAssessmentQuestions } = useContext(AssessmentContext);
     const { getStudentAttendanceById } = useContext(StudentsContext);
     const [assessmentData, setAssessmentData]= useState(null);
@@ -26,6 +29,10 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
     const [attCount, setAttCount] = useState(0);
     const [selectedMonth, setSelectedMonth] = useState(null);
     const [configAlert, setConfigAlert] = useState(false);
+    const [tabValue, setTabValue] = useState(0);
+    const [weeklyData, setWeeklyData] = useState([]);
+    const [leaderBoard, setLeaderBoard] = useState(false);
+    const [nearestDate, setNearestDate] = useState(null);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -34,7 +41,10 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
         if (res && res.message){
             handleShowSnackbar('error',res.message);
         }else if(res){
-            const data = res && res.filter(data=>data.Course === course && JSON.parse(data.Question).Month === selectedMonth);
+            const weekly_data = res && res.filter(data=>data.Course === course && data.BatchName === batchName && data.WeeklyAssignment !== 'No');
+            setNearestDate(getNearestDate(weekly_data));
+            const data = res && res.filter(data=>data.Course === course && JSON.parse(data.Question).Month === selectedMonth && data.WeeklyAssignment === 'No');
+            setWeeklyData(weekly_data);
             setAssessmentData(data);
             fetchAttData(data);
         }
@@ -56,6 +66,31 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
             setAttData(filteredData);
             setAttCount(Array.isArray(filteredData) ? filteredData.length : 0);
         }
+    }
+
+    const getNearestDate = (data) => {
+        const currentDate = new Date();
+        let nearestDate = null;
+        let minDiff = Infinity;
+    
+        data.forEach(item => {
+            const itemDate = new Date(item.WeeklyAssignment);
+            const diff = Math.abs(itemDate - currentDate);
+    
+            if (diff < minDiff) {
+                minDiff = diff;
+                nearestDate = itemDate;
+            }
+        });
+    
+        if (nearestDate) {
+            const day = String(nearestDate.getDate()).padStart(2, '0');
+            const month = months[nearestDate.getMonth()];
+            const year = nearestDate.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        return null;
     }
 
     useEffect(()=>{
@@ -89,13 +124,10 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
             return '#dcfce7';
         }
     };
-    
 
-    console.log(getColor());
-
-    const months = []
+    const months_ = []
     for(let i = 1; i <= getMonthsDifference(JoiningDate); i++){
-        months.push(i);
+        months_.push(i);
     }
 
     const handleSolveAssignment = (data) => {
@@ -107,32 +139,42 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
         }
         setSolveAssessmentData(data);
         setSolveAssesments(true);
-        setIsOpen(false);
+        localStorage.removeItem('Weekly_Assignment');
+        sessionStorage.removeItem('Weekly Assignment');
     }
 
   return (
     <>
     <Dialog open={isOpen} sx={{zIndex : '700'}} fullScreen>
         <Typography variant='h5' className='absolute top-5 left-3'>
-            Your Assessments <DescriptionRounded sx={{marginLeft : '10px'}} />
+            Your Assignments <DescriptionRounded sx={{marginLeft : '10px'}} />
         </Typography>
         <img src='/images/V-Cube-Logo.png' alt='' width='8%' className='ml-[46%]' />
         <IconButton sx={{position : 'absolute'}} className='top-3 right-3' onClick={()=>setIsOpen(false)}><CloseRounded sx={{fontSize : '35px'}} /></IconButton>
-        <DialogTitle variant='h5' className='flex items-center'>
-            <Box className='w-1/3 relative overflow-hidden rounded-md border-[1px] border-slate-300'>
-            <FormControl className='w-full outline-none' sx={{zIndex : '100'}}>
-                <InputLabel sx={{visibility : selectedMonth ? 'hidden' : 'visible'}}>Select Month</InputLabel>
-                <Select
-                    value={selectedMonth}
-                    onChange={(e)=>setSelectedMonth(e.target.value)}>
-                    {months.map((no)=><MenuItem value={`Month ${no}`}>{`Month ${no}`}</MenuItem>)}
-                </Select>
-            </FormControl>
-            <Box className={`absolute left-0 top-0 h-full w-[${getPercentage()}%] flex items-center justify-end`}  sx={{zIndex : '90', background : getColor()}}></Box>
-            <Typography color={getPercentage() < 35 ? 'error' : getPercentage() < 70 ? 'orange' : 'green'} className='absolute right-16 top-3 text-center' sx={{fontSize : '12px', zIndex : '100'}}>{attCount}/{Array.isArray(assessmentData) ? assessmentData.length : 0}<br/>Completed</Typography>
+        <DialogTitle variant='h5' className='flex items-center justify-between'>
+            <Box className='w-1/3 relative overflow-hidden rounded-md border-[1px] border-slate-300' sx={{visibility : tabValue === 0 ? 'visible' : 'hidden'}}>
+                <FormControl className='w-full outline-none' sx={{zIndex : '100'}}>
+                    <InputLabel sx={{visibility : tabValue === 0 && !selectedMonth ? 'visible' : 'hidden'}}>Select Month</InputLabel>
+                    <Select
+                        value={selectedMonth}
+                        onChange={(e)=>setSelectedMonth(e.target.value)}>
+                        {months_.map((no)=><MenuItem value={`Month ${no}`}>{`Month ${no}`}</MenuItem>)}
+                    </Select>
+                </FormControl>
+                <Box className={`absolute left-0 top-0 h-full w-[${getPercentage()}%] flex items-center justify-end`}  sx={{zIndex : '90', background : getColor()}}></Box>
+                <Typography color={getPercentage() < 35 ? 'error' : getPercentage() < 70 ? 'orange' : 'green'} className='absolute right-16 top-3 text-center' sx={{fontSize : '12px', zIndex : '100'}}>{attCount}/{Array.isArray(assessmentData) ? assessmentData.length : 0}<br/>Completed</Typography>
+            </Box>
+            <Button sx={{display : 'flex', flexDirection : 'column', marginRight : '100px',visibility : tabValue === 1 ? 'visible' : 'hidden'}} variant={leaderBoard ? 'contained' : 'outlined'} onClick={()=>setLeaderBoard(!leaderBoard)}>
+                <LeaderboardRounded/><Typography>LeaderBoard</Typography>
+            </Button>
+            <Box>
+                <Tabs value={tabValue}>
+                    <Tab label='Daily Assigments' onClick={()=>setTabValue(0)} />
+                    <Tab label='Weekly Assigments' onClick={()=>setTabValue(1)} />
+                </Tabs>
             </Box>
         </DialogTitle>
-        <DialogContent className='grid grid-cols-2 place-content-start gap-5'>
+        {tabValue === 0 ? <DialogContent className='grid grid-cols-2 place-content-start gap-5'>
             {Array.isArray(assessmentData) && assessmentData.length > 0 && assessmentData.map((data,index)=>
             <Tooltip title={isUser !== 'Student' && data.id} arrow>
             <Card className='w-full h-20 border-[1px] border-gray-200 p-5 flex items-center justify-between' key={index}>
@@ -146,7 +188,17 @@ const AssessmentsData = ({ isOpen, setIsOpen, course, batchName, handleShowSnack
                 </Box>
             </Card>
             </Tooltip>)}
-        </DialogContent>
+        </DialogContent> :
+        <DialogContent>
+            {leaderBoard ? 
+                <AssignmentLeaderBoard stdId={stdId} name={name} phone={phone} nearestDate={nearestDate} course={course} batchName={batchName} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading}
+                                    liveWeeklyDataDate={Array.isArray(weeklyData) ? weeklyData.filter((data)=>data.WeeklyAssignment !== 'No' && data.WeeklyAssignment.split(' ')[0] === DateTime().split(' ')[0]).map(data => data.WeeklyAssignment)[0] : false}/>
+                 : 
+                <WeeklyAssignments stdId={stdId} name={name} phone={phone} course={course} batchName={batchName} handleShowSnackbar={handleShowSnackbar} setIsLoading={setIsLoading} 
+                                setSolveAssesments={setSolveAssesments} setSolveAssessmentData={setSolveAssessmentData} isUser={isUser} setTab_Value={setTabValue} image={image}
+                                liveWeeklyData={Array.isArray(weeklyData) && weeklyData.filter((data)=>data.WeeklyAssignment !== 'No' && data.WeeklyAssignment.split(' ')[0] === DateTime().split(' ')[0])} 
+                                pastWeeklyData={Array.isArray(weeklyData) && weeklyData.filter((data)=>data.WeeklyAssignment.split(' ')[0] !== DateTime().split(' ')[0] && data.WeeklyAssignment !== 'No').reverse()} />}
+        </DialogContent>}
     </Dialog>
 
     <Dialog open={configAlert} sx={{zIndex : '710'}}>

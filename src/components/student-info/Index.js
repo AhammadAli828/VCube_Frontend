@@ -84,7 +84,7 @@ const StudentInfo = () => {
   const [reportIssue, setReportIssue] = useState(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [refreshed, setRefreshed] = useState(false);
-  const [timer, setTimer] = useState(10);
+  const [timer, setTimer] = useState(30);
 
   const Check_Auth = async () => {
     await UseUserAuthentication(checkUserAuth, setIs_User_Authenticated);
@@ -102,6 +102,15 @@ const StudentInfo = () => {
     });
   }, [enqueueSnackbar, closeSnackbar]);
 
+  const is_Assignment = () => {
+    if(sessionStorage.getItem('Reloaded_In_Assignment') === 'True'){
+      setTimeout(()=>{
+        setSolveAssessmentData(JSON.parse(sessionStorage.getItem('Reloaded_Assignment_Data')));
+        setDialogState(pre => ({ ...pre, solveAssessment: true }));
+      },500)
+    };
+  }
+
   useEffect(() => {
     startTransition(()=>{
       if (isLoading) {
@@ -111,8 +120,8 @@ const StudentInfo = () => {
       }
     })
     Check_Auth();
+    is_Assignment();
   }, []);
-
 
   const fetchData = useCallback(async () => {
     startTransition(async()=>{
@@ -209,7 +218,7 @@ const StudentInfo = () => {
 
     if (timer === 0) {
       setRefreshed(false);
-      setTimer(10);
+      setTimer(30);
     }
   
     return () => clearTimeout(timerId);
@@ -269,7 +278,7 @@ const StudentInfo = () => {
     (isUser !== 'Student' || (isUser === 'Student' && stdPermission.Edit === 'Access')) && isUser.split(' ')[0] !== 'Placements' &&
     { icon: <Edit />, name: 'Edit Details', onClick: () => {setDialogState(prev => ({ ...prev, editStdDetails: true }));setEditDetails(true)} },
     { icon: <Link href={studentData.personal.Resume} download={`VCube-${studentData.personal.Name}-${studentData.personal.Course}-${studentData.personal.BatchName}.pdf`} ><SimCardDownloadRounded /></Link>, name: 'Download Resume' },
-    isUser.split(' ')[0] !== 'Placements'  && { icon: <ContentPasteRounded />, name: 'Assessments', onClick: () => setDialogState(prev => ({ ...prev, assessmentDialog: true })) },
+    isUser.split(' ')[0] !== 'Placements'  && { icon: <ContentPasteRounded />, name: 'Assignments', onClick: () => setDialogState(prev => ({ ...prev, assessmentDialog: true })) },
     isUser === 'Student' && { icon: <CodeRounded />, name: 'Code Editor', onClick: () => setDialogState(pre => ({ ...pre, practice_CodeEditor: true })) },
     isUser === 'Student' && { icon: <SmartDisplayRounded />, name: 'Class Recordings', onClick: ()=> setDialogState(pre => ({ ...pre, classVedio: true })) },
     { icon: <SmsRounded />, name: 'Messages you sent', onClick: () => setDialogState(prev => ({ ...prev, sentMessageForm: true })) },
@@ -341,9 +350,9 @@ const StudentInfo = () => {
               </>
             )}
 
-            <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: isUser === 'Student' ? '12%' : '1%' }} onClick={()=>{!refreshed && refreshData();setRefreshed(true)}}>
+            <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: isUser === 'Student' ? '12.8%' : '1%' }} onClick={()=>{!refreshed && refreshData();setRefreshed(true)}}>
                 <Tooltip title={`Refresh ${refreshed ? timer < 10 ? `in 0${timer}` : `in ${timer}` : ''}`} arrow>
-                  <RefreshRounded/>
+                  <RefreshRounded  sx={{ fontSize: '30px' }} />
                 </Tooltip>
             </MemoizedIconButton>
 
@@ -389,7 +398,8 @@ const StudentInfo = () => {
                 selectedCourse={studentData.personal.Course}
                 user={isUser}
                 editDetails={editDetails}
-                joiningDate={studentData.joiningDate} />}
+                joiningDate={studentData.joiningDate} 
+                refreshData={refreshData} />}
           {dialogState.messageForm && <SendMessageForm 
                 isOpen={dialogState.messageForm} 
                 setIsopen={(open) => setDialogState(prev => ({ ...prev, messageForm: open }))} 
@@ -438,6 +448,9 @@ const StudentInfo = () => {
                 JoiningDate={studentData.joiningDate}
                 isUser={isUser}
                 configs={studentData.config}
+                image={studentData.personal.Image}
+                name={studentData.personal.Name}
+                phone={studentData.personal.Phone}
           />}
           {dialogState.stdNotifications && <StudentNotifications 
                 isOpen={dialogState.stdNotifications} 
@@ -466,6 +479,7 @@ const StudentInfo = () => {
                 handleShowSnackbar={handleShowSnackbar} 
                 solveAssessmentData={solveAssessmentData}
                 name={studentData.personal.Name} 
+                phone={studentData.personal.Phone}
                 course={studentData.personal.Course}
                 batchName={studentData.personal.BatchName}
                 isUser={isUser}
@@ -476,6 +490,7 @@ const StudentInfo = () => {
                 handleShowSnackbar={handleShowSnackbar} 
                 configs={studentData.config}
                 fetchStdData={fetchData}
+                stdId={stdId}
           />}
           {dialogState.classVedio && <ClassVedios 
                 isOpen={dialogState.classVedio} 
