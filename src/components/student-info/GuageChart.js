@@ -16,7 +16,7 @@ export const GaugeChart = ({ Guagevalue }) => {
         setValue(i)
       }, 15 * i)
     };
-  },[])
+  },[Guagevalue])
 
 
   const getColor = (value <= 35) ? "red" : (value > 35 && value <= 50) ? "gold" : (value > 50 && value <= 75) ? "orange" : "green";

@@ -5,17 +5,18 @@ import { GaugeChart } from './GuageChart';
 import { CloseRounded, PieChartRounded, SendRounded } from '@mui/icons-material';
 import { MailContext } from '../api/SendMail';
 import { areas_of_improvement, strengths } from '../ExternalData';
+import { StudentsContext } from '../api/students';
 
-
-const Performance = ({ batchAttendanceData, stdAttendanceData, name, email, setIsLoading, handleShowSnackbar, isUser }) => {
+const Performance = ({ batchAttendanceData, stdAttendanceData, stdId, name, phone, email, setIsLoading, handleShowSnackbar, isUser }) => {
+  const { fetchAssignmentResults } = useContext(StudentsContext);
   const { sendEmail } = useContext(MailContext);
   const [std_strengths, setstd_Strengths] = useState([]);
   const [improves, setImproves] = useState([]);
   const [sendReport, setSendReport] = useState(false);
   const batchCount = [];
   const studentCount = [];
-    const types = ['Class', 'Mock Test', 'Interview'];
-
+  const types = ['Class', 'Mock Test', 'Interview'];
+  const [studentScore, setStudentScore] = useState(0);
 
     types.forEach(type=>{
       let cnt = 0
@@ -33,9 +34,29 @@ const Performance = ({ batchAttendanceData, stdAttendanceData, name, email, setI
       studentCount.push(cnt);
     })
 
+    const getScore = async () => {
+      setIsLoading(true);
+      const res = await fetchAssignmentResults(stdId);
+      if(res && res.message){
+        handleShowSnackbar('error',`Failed to get Weekly Test Score. ${res.message}`);
+      }else{
+        const scoreData = Array.isArray(res) && res.filter((data)=>(
+          data.StudentId === stdId && data.Name === `${name}~${phone}`
+        ))
+        const total = scoreData.reduce((accumulator, data) => {
+          return accumulator + parseInt(data.Score, 10);
+        }, 0);
+        setStudentScore(total > 0 && scoreData.length > 0 ? Math.floor((total / (scoreData.length * 100)) * 100) : 0);
+      }
+      setIsLoading(false);
+    }
+
+    useEffect(()=>{
+      getScore();
+    },[])
 
   const actualClasses = batchCount[0] + batchCount[1] + batchCount[2]
-  const attendedClasses = studentCount[0] + studentCount[1] + studentCount[2] 
+  const attendedClasses = studentCount[0] + studentCount[1] + studentCount[2]
 
   let total;
   if (actualClasses > 0) {
@@ -59,7 +80,8 @@ Performance Overview:
   • Out of ${batchCount[0]} Classess Attended ${studentCount[0]}
   • Out of ${batchCount[1]} Mock Tests Attended ${studentCount[1]}
   • Out of ${batchCount[2]} Interview Attended ${studentCount[2]}
-  • Assignments Solved ${assignments}
+  • Assignments Solved : ${assignments}
+  • Weekly Test Score : ${studentScore}
 
 Strengths:
 
@@ -89,7 +111,7 @@ Areas for Improvement:
               mock={`${batchCount[1]}~${studentCount[1]}`}
               interview={`${batchCount[2]}~${studentCount[2]}`} />
         <Box className="w-1/2 h-full flex flex-col items-center justify-center">
-          <GaugeChart Guagevalue={total} />
+          <GaugeChart Guagevalue={Math.floor(((total + studentScore) / 200) * 100)} />
         </Box>
       </Box>
       {(isUser !== 'Student' && isUser.split(' ')[0] !== 'Placements') && <Box className="flex flex-col items-center justify-around w-full h-1/6">

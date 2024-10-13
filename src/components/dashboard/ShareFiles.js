@@ -18,13 +18,14 @@ const ShareFiles = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, selec
             setIsOpen(false);
             setSelectedFile(null);
         }else if(users_Data){
-            setUsers(users_Data);
+            console.log(users_Data)
+            setUsers(Array.isArray(users_Data) ? users_Data.filter(data => data.Email !== email && data.Username !== username) : '');
         }
     },[fetchLoginData, handleShowSnackbar, setIsLoading])
 
     useEffect(()=>{
         fetchData();
-    },[])
+    },[isOpen])
 
     const shareFiles = async () => {
         setIsLoading(true);

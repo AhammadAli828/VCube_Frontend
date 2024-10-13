@@ -48,7 +48,7 @@ const PlacementNotifications = ({ isOpen, setIsOpen, course, batchName, setIsLoa
     return (
       <>
       <Dialog open={isOpen} sx={{zIndex : '700'}} maxWidth='lg'>
-          <img src='/images/V-Cube-Logo.png' alt='' width='12%' className='ml-[44%]' />
+          <img src='/images/V-Cube-Logo.png' alt='' width='8%' className='ml-[46%]' />
           <IconButton sx={{position : 'absolute'}} className='top-3 right-3' onClick={handleClose}><CloseRounded sx={{fontSize : '35px'}} /></IconButton>
           <DialogTitle className='flex items-center' variant='h5'>Posted Job Annoucements <WorkRounded sx={{marginLeft : '10px'}} /></DialogTitle>
           <DialogContent className='w-[75rem] max-h-[40rem] h-[40rem] grid grid-cols-2 gap-x-5 gap-y-5 overflow-y-auto place-content-start'>

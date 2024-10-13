@@ -1,7 +1,7 @@
 import { Box, IconButton, Typography, Popover, Tooltip } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
-export const StudentAttendanceCalendar = ({ open, id, anchorEl, setAnchorEl, month, year, stdMonthDates, batchMonthDates, attType, selectedValue, watch_Time_Arr }) => {
+export const StudentAttendanceCalendar = ({ open, id, anchorEl, setAnchorEl, month, year, stdMonthDates, batchMonthDates, attType, selectedValue, watch_Time_Arr, moctTestScore }) => {
   const [monthDates, setMonthDates] = useState([]);
   const selectedDates = []
   for(let i = 1; i <= selectedValue; i++){
@@ -37,6 +37,7 @@ export const StudentAttendanceCalendar = ({ open, id, anchorEl, setAnchorEl, mon
     setAnchorEl(null);
   };
 
+
   return (
     <Popover
         id={id}
@@ -55,13 +56,16 @@ export const StudentAttendanceCalendar = ({ open, id, anchorEl, setAnchorEl, mon
         </Typography>
         <Typography sx={{margin : '20px 0 30px 30px'}} variant='h5' >{`${month && month.split('~')[0]} ${year}`}</Typography>
       <Box className='w-[90%] h-[85%] mt-[5%] ml-[3%] mb-5 grid grid-cols-7 gap-3'>
-        {monthDates.map((value,index)=><Box className={`w-10 h-10 rounded-full flex items-center justify-center ${dates && dates.includes(`${value}`) ? 'bg-[#4caf50]' : batchDates && batchDates.includes(attType === 'Assignment' ? value : `${value}`) ? 'bg-[#1976d2]' : ''}`}>
-          <Tooltip title={attType === 'Watch Time' ? Array.isArray(dates) && dates.includes(`${value}`) ? `${Math.floor(parseInt(watch_Time_Arr[value]) / 60)} m : ${parseInt(watch_Time_Arr[value]) % 60} s` : null : null} arrow>
-            <IconButton className='w-10 h-10' color={dates && dates.includes(`${value + 1}`) ? 'primary' :  batchDates && batchDates.includes(`${value}`) ? 'success' : ''}>
-              <Typography className={(dates && dates.includes(`${value}`)) || (batchDates && batchDates.includes(attType === 'Assignment' ? value : `${value}`)) ? `text-white` : (parseInt(value) > 0) ? 'text-gray-500' : 'text-[#1976d2]'} >{value}</Typography>
-            </IconButton>
-          </Tooltip>
-        </Box>)}
+        {monthDates.map((value,index)=>
+          <Box key={index} className={`w-10 h-10 rounded-full flex items-center justify-center ${dates && dates.map(Number).includes(value) ? 'bg-[#4caf50]' : batchDates && batchDates.map(Number).includes(value) ? 'bg-[#1976d2]' : ''}`}>
+            <Tooltip title={attType === 'Watch Time' ? Array.isArray(dates) && dates.map(Number).includes(value) ? `${Math.floor(parseInt(watch_Time_Arr[value]) / 60)} m : ${parseInt(watch_Time_Arr[value]) % 60} s` : null : 
+                            attType === 'Mock Test' ? month ? moctTestScore[0][month.split('~')[0]] ? moctTestScore[0][month.split('~')[0]][value] : null : null : null} arrow>
+              <IconButton className='w-10 h-10' color={dates && dates.map(Number).includes(value + 1) ? 'primary' :  batchDates && batchDates.map(Number).includes(value) ? 'success' : ''}>
+                <Typography className={(dates && dates.map(Number).includes(value)) || (batchDates && batchDates.map(Number).includes(value)) ? `text-white` : (parseInt(value) > 0) ? 'text-gray-500' : 'text-[#1976d2]'} >{value}</Typography>
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
       </Box>
     </Popover>

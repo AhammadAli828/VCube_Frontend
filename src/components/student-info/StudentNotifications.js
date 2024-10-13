@@ -32,7 +32,7 @@ const StudentNotifications = ({ isOpen, setIsOpen, course, batchName, handleShow
 
   return (
     <Dialog open={isOpen} sx={{zIndex : '700'}} maxWidth='lg'>
-        <img src='/images/V-Cube-Logo.png' alt='' width='15%' className='ml-[42.5%]' />
+        <img src='/images/V-Cube-Logo.png' alt='' width='12%' className='ml-[44%]' />
         <IconButton sx={{position : 'absolute'}} className='right-1 top-1' onClick={()=>setIsOpen(false)} ><CloseRounded sx={{fontSize : '35px'}} /></IconButton>
         <DialogTitle variant='h5'>Your Notifications <NotificationsRounded sx={{fontSize : '30px'}} /></DialogTitle>
         <DialogContent className='w-[50rem] h-[40rem] overflow-y-auto' sx={{scrollbarWidth : 'none'}}>

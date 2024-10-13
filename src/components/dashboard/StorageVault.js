@@ -122,7 +122,7 @@ const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isV
             setShareFile(true);
         }else{
             setDroppedFolder(folder);
-            (draggedFile.Folder === folder) ?
+            (draggedFile.Folder === folder && folder !== 'Delete') ?
             handleShowSnackbar('error',`You cannot move this file to "${draggedFile.Folder}" as it already exists in that location.`) :
             setMoveFile(true);
         }
@@ -137,6 +137,8 @@ const StorageVault = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, isV
             nameChange.DrivePassword = driveUser.Drive;
         } else if(droppedFolder !== 'Delete') {
             draggedFile.Folder = droppedFolder;
+            draggedFile.DrivePassword = driveUser.Drive;
+        }else if(droppedFolder === 'Delete'){
             draggedFile.DrivePassword = driveUser.Drive;
         }
         const dataToPatch = nameChange ? nameChange : draggedFile;

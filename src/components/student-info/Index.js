@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback, lazy, Suspense, startTransition, memo } from 'react';
 import { Box, Card, IconButton, Tooltip, Badge, SpeedDial, SpeedDialIcon, SpeedDialAction, Link, Dialog, DialogContent, DialogContentText, DialogTitle, DialogActions, Button, Typography } from '@mui/material';
-import { MenuRounded, Notifications, Edit, Close, SimCardDownloadRounded, LogoutRounded, CloseRounded, MailRounded, SmsRounded, ContentPasteRounded, ThumbUpAltRounded, CodeRounded, SmartDisplayRounded, ReportProblemRounded, RefreshRounded } from '@mui/icons-material';
+import { MenuRounded, Notifications, Edit, Close, SimCardDownloadRounded, LogoutRounded, CloseRounded, MailRounded, SmsRounded, ContentPasteRounded, ThumbUpAltRounded, CodeRounded, SmartDisplayRounded, ReportProblemRounded, RefreshRounded, LeaderboardRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { StudentsContext } from '../api/students';
 import { BatchAttendanceContext } from '../api/batch-attendance';
@@ -10,10 +10,8 @@ import { is_User } from '../UserDetails';
 import { LoginContext } from '../api/login';
 import { UseStudentAuthentication, UseUserAuthentication } from '../api/LoginCheck';
 import { useAuth } from '../api/AuthContext';
-import ExpiredPage from '../ExpiredPage';
 import { UsersAuthContext } from '../api/UsersAuth';
 import { StudentsAuthContext } from '../api/StudentsAuth';
-import ReportDialog from '../ReportDialog';
 
 const CustomTabs = lazy(()=> import('./Tabs'));
 const PersonalInfo = lazy(() => import('./PersonalInfo'));
@@ -33,6 +31,9 @@ const PlacementNotifications = lazy(() => import('./PlacementNotifications'));
 const AssessmentCodeEditor = lazy(() => import('./AssessmentCodeEditor'));
 const PracticeCodeEditor = lazy(()=> import('./PracticeCodeEditor'));
 const ClassVedios = lazy(()=> import('./ClassVedios'));
+const ExpiredPage = lazy(()=> import('../ExpiredPage'));
+const ReportDialog = lazy(()=> import('../ReportDialog'));
+const LeaderboardResults = lazy(()=> import('./LeaderboardResults'));
 
 const MemoizedIconButton = memo(IconButton);
 
@@ -73,7 +74,8 @@ const StudentInfo = () => {
     stdMailNotifications: false,
     solveAssessment: false,
     practice_CodeEditor: false,
-    classVedio : false,
+    classVedio: false,
+    leaderboard: false,
   });
   const [notifLen, setNotifLen] = useState(0);
   const [mailNotif, setMailNotif] = useState(0);
@@ -330,6 +332,8 @@ const StudentInfo = () => {
                 setIsLoading={setIsLoading}
                 handleShowSnackbar={handleShowSnackbar}
                 isUser={isUser}
+                stdId={stdId}
+                phone={studentData.personal.Phone}
               />
             ) : tabsValue === 3 ? (
               <EducationInfo student_Details={studentData.education} />
@@ -350,10 +354,16 @@ const StudentInfo = () => {
               </>
             )}
 
-            <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: isUser === 'Student' ? '12.8%' : '1%' }} onClick={()=>{!refreshed && refreshData();setRefreshed(true)}}>
-                <Tooltip title={`Refresh ${refreshed ? timer < 10 ? `in 0${timer}` : `in ${timer}` : ''}`} arrow>
-                  <RefreshRounded  sx={{ fontSize: '30px' }} />
-                </Tooltip>
+            <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: isUser === 'Student' ? '12.8%' : '1%' }}  onClick={() => setDialogState(prev => ({ ...prev, leaderboard: true }))}>
+              <Tooltip title='Leaderboard' arrow>
+                <LeaderboardRounded  sx={{ fontSize: '30px' }} />
+              </Tooltip>
+            </MemoizedIconButton>
+
+            <MemoizedIconButton sx={{ position: 'absolute', top: '2%', left: isUser === 'Student' ? '16.3%' : '5%' }} onClick={()=>{!refreshed && refreshData();setRefreshed(true)}}>
+              <Tooltip title={`Refresh ${refreshed ? timer < 10 ? `in 0${timer}` : `in ${timer}` : ''}`} arrow>
+                <RefreshRounded  sx={{ fontSize: '30px' }} />
+              </Tooltip>
             </MemoizedIconButton>
 
             <SpeedDial
@@ -508,6 +518,19 @@ const StudentInfo = () => {
 
           <ReportDialog isOpen={reportIssue} setIsOpen={setReportIssue} setLoading={setIsLoading} />
           
+          <LeaderboardResults 
+              isOpen={dialogState.leaderboard}
+              setIsOpen={(open)=> setDialogState((pre)=> ({...pre, leaderboard: open}))}
+              stdId={stdId}
+              name={studentData.personal.Name}
+              phone={studentData.personal.Phone}
+              course={studentData.personal.Course}
+              batchName={studentData.personal.BatchName}
+              handleShowSnackbar={handleShowSnackbar}
+              setIsLoading={setIsLoading}
+              batchAttendanceData={batchAttendanceData}
+          />
+
           {dialogState.isLogout && <Dialog open={dialogState.isLogout} onClose={() => setDialogState(prev => ({ ...prev, isLogout: false }))}>
             <DialogTitle>Are you sure you want to Logout?</DialogTitle>
             <DialogContent>
