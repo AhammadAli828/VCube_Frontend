@@ -18,7 +18,6 @@ const ShareFiles = ({ isOpen, setIsOpen, handleShowSnackbar, setIsLoading, selec
             setIsOpen(false);
             setSelectedFile(null);
         }else if(users_Data){
-            console.log(users_Data)
             setUsers(Array.isArray(users_Data) ? users_Data.filter(data => data.Email !== email && data.Username !== username) : '');
         }
     },[fetchLoginData, handleShowSnackbar, setIsLoading])
